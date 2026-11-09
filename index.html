@@ -1,41 +1,136 @@
-html_realistic = """<!DOCTYPE html>
+code = """<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configurateur Salle de Bain 3D Réaliste & Métré</title>
+  <title>Configurateur Salle de Bain 3D & Métré</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { display: flex; height: 100vh; overflow: hidden; background: #0f172a; color: #f8fafc; }
-    #sidebar { width: 380px; background: #111827; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; border-right: 1px solid #374151; }
-    #viewport-container { flex: 1; position: relative; }
+    body { display: flex; height: 100vh; overflow: hidden; background: #0b1120; color: #f8fafc; font-size: 14px; }
+    
+    /* Menu gauche élargi, aéré et très lisible */
+    #sidebar { 
+      width: 440px; 
+      min-width: 440px; 
+      background: #0f172a; 
+      padding: 24px; 
+      overflow-y: auto; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 18px; 
+      border-right: 2px solid #1e293b;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+      z-index: 10;
+    }
+    
+    #viewport-container { flex: 1; position: relative; width: 100%; height: 100%; }
     #viewport { width: 100%; height: 100%; }
-    h2 { font-size: 0.95rem; color: #38bdf8; border-bottom: 1px solid #374151; padding-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .control-group { display: flex; flex-direction: column; gap: 8px; }
-    .row { display: flex; gap: 8px; align-items: flex-end; }
-    label { font-size: 0.75rem; color: #9ca3af; }
-    input, select, button { padding: 7px 10px; border-radius: 6px; border: 1px solid #374151; background: #1f2937; color: #fff; font-size: 0.82rem; width: 100%; }
-    input:focus, select:focus { outline: 1px solid #38bdf8; }
-    button { cursor: pointer; background: #0284c7; border: none; font-weight: 500; transition: 0.15s; }
+    
+    h2 { 
+      font-size: 1.05rem; 
+      color: #38bdf8; 
+      border-bottom: 2px solid #1e293b; 
+      padding-bottom: 6px; 
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .control-group { display: flex; flex-direction: column; gap: 10px; }
+    .row { display: flex; gap: 10px; align-items: flex-end; }
+    label { font-size: 0.85rem; color: #94a3b8; font-weight: 500; }
+    
+    input, select, button { 
+      padding: 10px 12px; 
+      border-radius: 8px; 
+      border: 1px solid #334155; 
+      background: #1e293b; 
+      color: #fff; 
+      font-size: 0.9rem; 
+      width: 100%; 
+    }
+    input:focus, select:focus { outline: 2px solid #38bdf8; border-color: transparent; }
+    
+    button { 
+      cursor: pointer; 
+      background: #0284c7; 
+      border: none; 
+      font-weight: 600; 
+      transition: background 0.15s, transform 0.05s; 
+    }
     button:hover { background: #0369a1; }
-    button.secondary { background: #374151; }
-    button.secondary:hover { background: #4b5563; }
-    .btn-danger { background: #dc2626; }
+    button:active { transform: scale(0.98); }
+    button.secondary { background: #334155; }
+    button.secondary:hover { background: #475569; }
+    
+    .btn-danger { background: #dc2626; color: white; font-weight: 600; }
     .btn-danger:hover { background: #b91c1c; }
-    #bill { background: #1f2937; border-radius: 6px; padding: 10px; font-size: 0.78rem; border: 1px solid #374151; }
-    #bill ul { list-style: none; margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
-    #bill li { display: flex; justify-content: space-between; border-bottom: 1px dashed #374151; padding-bottom: 2px; }
-    .badge { background: #0284c7; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-    .note-safety { font-size: 0.72rem; color: #10b981; margin-top: 2px; }
-    #overlay-hint { position: absolute; bottom: 12px; left: 12px; background: rgba(17,24,39,0.85); padding: 8px 12px; border-radius: 6px; font-size: 0.75rem; color: #d1d5db; pointer-events: none; backdrop-filter: blur(4px); }
-    .item-section { background: #192233; padding: 10px; border-radius: 6px; border: 1px solid #283548; display: flex; flex-direction: column; gap: 8px; }
+    .btn-del-select { background: #e11d48; color: white; border: none; font-weight: 600; padding: 12px; }
+    .btn-del-select:hover { background: #be123c; }
+
+    .item-section { 
+      background: #1e293b; 
+      padding: 14px; 
+      border-radius: 8px; 
+      border: 1px solid #334155; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 10px; 
+    }
+
+    #selected-box {
+      background: #1e1b4b;
+      border: 1px solid #6366f1;
+      padding: 12px;
+      border-radius: 8px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #bill { 
+      background: #1e293b; 
+      border-radius: 8px; 
+      padding: 14px; 
+      font-size: 0.85rem; 
+      border: 1px solid #334155; 
+    }
+    #bill ul { list-style: none; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+    #bill li { display: flex; justify-content: space-between; border-bottom: 1px dashed #334155; padding-bottom: 4px; }
+    .badge { background: #0284c7; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; }
+    .note-safety { font-size: 0.75rem; color: #10b981; margin-top: 4px; }
+    
+    #overlay-hint { 
+      position: absolute; 
+      bottom: 16px; 
+      left: 16px; 
+      background: rgba(15,23,42,0.9); 
+      padding: 10px 16px; 
+      border-radius: 8px; 
+      font-size: 0.82rem; 
+      color: #cbd5e1; 
+      pointer-events: none; 
+      backdrop-filter: blur(6px);
+      border: 1px solid #334155;
+    }
   </style>
 </head>
 <body>
 
   <div id="sidebar">
-    <h2>1. Pièce & Carrelage</h2>
+    <!-- Sélection active et suppression -->
+    <div id="selected-box">
+      <div style="font-size:0.8rem; color:#a5b4fc; font-weight:600;">ÉLÉMENT SÉLECTIONNÉ :</div>
+      <div id="selected-name" style="font-weight:700; color:#fff; font-size:0.95rem;">-</div>
+      <div class="row">
+        <button id="btnRotateSelected" class="secondary">Pivoter (90°)</button>
+        <button id="btnDeleteSelected" class="btn-del-select">Supprimer</button>
+      </div>
+    </div>
+
+    <h2>1. Pièce & Carrelage Grand Format</h2>
     <div class="control-group">
       <div class="row">
         <div style="flex:1;">
@@ -49,34 +144,34 @@ html_realistic = """<!DOCTYPE html>
       </div>
       <div class="row">
         <div style="flex:1;">
-          <label>Teinte Carrelage Sol</label>
+          <label>Dalles Sol (Grand Format)</label>
           <select id="tileFloorColor">
-            <option value="dark">Gris Anthracite 60x60</option>
-            <option value="light">Gris Clair Béton 60x60</option>
-            <option value="beige">Beige Travertin 60x60</option>
+            <option value="slate">Ardoise Noire 60x120 avec relief</option>
+            <option value="grey_stone">Pierre Grise Structurée 60x120</option>
+            <option value="concrete">Béton Ciré Minéral 90x90</option>
           </select>
         </div>
         <div style="flex:1;">
-          <label>Faïence Murale</label>
+          <label>Murs & Faïence</label>
           <select id="tileWallColor">
-            <option value="white">Faïence Blanche Marbre</option>
-            <option value="metro">Métro Blanc Joint Gris</option>
-            <option value="concrete">Béton Ciré Clair</option>
+            <option value="marble">Marbre Blanc Veiné 60x120</option>
+            <option value="travertine">Travertin Beige Structuré</option>
+            <option value="concrete_wall">Béton Mural Doux</option>
           </select>
         </div>
       </div>
-      <button class="secondary" id="btnUpdateRoom">Actualiser la pièce</button>
+      <button class="secondary" id="btnUpdateRoom">Appliquer le carrelage & cotes</button>
     </div>
 
     <h2>2. Bac & Paroi de Douche</h2>
     <div class="item-section">
       <div class="row">
         <div style="flex:1;">
-          <label>Bac L (cm)</label>
+          <label>Bac Longueur (cm)</label>
           <input type="number" id="showerL" value="120" step="5" min="70" max="250">
         </div>
         <div style="flex:1;">
-          <label>Bac l (cm)</label>
+          <label>Bac Largeur (cm)</label>
           <input type="number" id="showerW" value="80" step="5" min="70" max="180">
         </div>
       </div>
@@ -86,24 +181,24 @@ html_realistic = """<!DOCTYPE html>
           <input type="number" id="glassW" value="100" step="5" min="40" max="200">
         </div>
         <div style="flex:1;">
-          <label>Hauteur Paroi (cm)</label>
+          <label>Hauteur (cm)</label>
           <input type="number" id="glassH" value="200" step="5" min="160" max="220">
         </div>
       </div>
-      <button id="btnAddShower">+ Poser Douche Complète</button>
+      <button id="btnAddShower">+ Ajouter Douche Complète</button>
     </div>
 
-    <h2>3. Meuble Vasque Réaliste</h2>
+    <h2>3. Meuble Vasque avec Robinetterie</h2>
     <div class="item-section">
       <div class="row">
         <div style="flex:1;">
-          <label>Largeur meuble (cm)</label>
+          <label>Largeur Meuble (cm)</label>
           <input type="number" id="sinkW" value="80" step="5" min="50" max="220">
         </div>
         <div style="flex:1;">
-          <label>Vasques</label>
+          <label>Configuration</label>
           <select id="sinkType">
-            <option value="auto">Auto (selon taille)</option>
+            <option value="auto">Auto (selon largeur)</option>
             <option value="1">1 Vasque</option>
             <option value="2">2 Vasques</option>
           </select>
@@ -111,58 +206,60 @@ html_realistic = """<!DOCTYPE html>
       </div>
       <div class="row">
         <div style="flex:1;">
-          <label>Couleur Caisson</label>
+          <label>Finition Caisson</label>
           <select id="sinkColor">
-            <option value="wood">Chêne Clair Naturel</option>
+            <option value="wood">Chêne Naturel Flammé</option>
             <option value="anthra">Gris Anthracite Mat</option>
-            <option value="blue">Bleu Nuit Profond</option>
-            <option value="white">Blanc Laqué</option>
+            <option value="blue">Bleu Minéral</option>
+            <option value="white">Blanc Mat Doux</option>
           </select>
         </div>
       </div>
-      <button id="btnAddSink">+ Poser Meuble Vasque</button>
+      <button id="btnAddSink">+ Ajouter Meuble Vasque</button>
     </div>
 
-    <h2>4. Miroir LED & Sanitaire</h2>
+    <h2>4. Sanitaire & Déco</h2>
     <div class="control-group">
       <div class="row">
-        <button id="btnAddMirror" style="flex:1;">+ Grand Miroir LED</button>
-        <button id="btnAddWC" style="flex:1;">+ Bâti WC Suspendu</button>
+        <button id="btnAddMirror" style="flex:1;">+ Miroir Rétro-LED</button>
+        <button id="btnAddWC" style="flex:1;">+ WC Suspendu Bâti</button>
       </div>
     </div>
 
-    <h2>5. Robinetterie & Quincaillerie</h2>
+    <h2>5. Options & Quincaillerie</h2>
     <div class="control-group">
-      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-        <input type="checkbox" id="chkEncastre" checked style="width:auto;"> Mitigeur douche encastré (corps + platine)
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+        <input type="checkbox" id="chkEncastre" checked style="width:auto; transform:scale(1.2);"> Robinetterie douche encastrée (applique/platine)
       </label>
-      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-        <input type="checkbox" id="chkRainShower" checked style="width:auto;"> Pommeau pluie plafond/mural 30x30 cm
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+        <input type="checkbox" id="chkRainShower" checked style="width:auto; transform:scale(1.2);"> Tête de pluie encastrée / grand ciel de pluie
       </label>
       <div class="row">
         <div style="flex:1;">
-          <label>Patères serviettes :</label>
+          <label>Nombre de patères :</label>
           <input type="number" id="numHooks" value="2" min="0" max="10">
         </div>
       </div>
     </div>
 
-    <h2>6. Métré & Matériel Chantier</h2>
+    <h2>6. Métré & Fournitures Chantier</h2>
     <div id="bill">
-      <div style="color: #38bdf8; font-weight:600;">Calcul automatique des fournitures :</div>
+      <div style="color: #38bdf8; font-weight:700;">Quantitatifs matériel estimé :</div>
       <div class="note-safety">Marge intégrée : +15% et +1,50 m forfaitaire par ligne</div>
       <ul id="billList"></ul>
     </div>
 
     <div class="control-group">
-      <button id="btnCapture" style="background:#10b981;">Enregistrer Photo Rendu 3D</button>
-      <button class="btn-danger" id="btnClear">Vider la pièce</button>
+      <button id="btnCapture" style="background:#10b981; padding:12px; font-size:0.95rem;">Enregistrer Photo Rendu Client</button>
+      <button class="btn-danger" id="btnClear" style="padding:10px;">Vider entièrement la pièce</button>
     </div>
   </div>
 
   <div id="viewport-container">
     <div id="viewport"></div>
-    <div id="overlay-hint">Clic / Doigt pour glisser un meuble sur le sol. Double-clic / double-tap pour faire pivoter à 90°.</div>
+    <div id="overlay-hint">
+      Clic gauche / Doigt : Déplacer un équipement | Touche SUPPR (ou bouton rouge) : Supprimer l'élément sélectionné | Double-clic : Rotation 90°
+    </div>
   </div>
 
   <script>
@@ -174,44 +271,115 @@ html_realistic = """<!DOCTYPE html>
     let lastTapTime = 0;
 
     const container = document.getElementById('viewport');
+    const selectedBox = document.getElementById('selected-box');
+    const selectedNameEl = document.getElementById('selected-name');
 
-    // Générateurs de textures carrelage procédurales
-    function createTileCanvas(baseColor, groutColor, tileSize, aspect) {
+    // Texture procédurale haute résolution avec relief réaliste (bump map)
+    function generateTileMaps(type, isFloor) {
+      const size = 1024;
       const c = document.createElement('canvas');
-      c.width = 512;
-      c.height = 512;
+      c.width = size;
+      c.height = size;
       const ctx = c.getContext('2d');
-      ctx.fillStyle = baseColor;
-      ctx.fillRect(0, 0, 512, 512);
 
-      // Micro texture grain
-      for (let i = 0; i < 5000; i++) {
-        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)';
-        ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
+      const bumpC = document.createElement('canvas');
+      bumpC.width = size;
+      bumpC.height = size;
+      const bumpCtx = bumpC.getContext('2d');
+
+      // Fond bump neutre
+      bumpCtx.fillStyle = '#808080';
+      bumpCtx.fillRect(0, 0, size, size);
+
+      if (type === 'slate') {
+        // Ardoise noire 60x120 structurée
+        ctx.fillStyle = '#1c2128';
+        ctx.fillRect(0, 0, size, size);
+        for (let i = 0; i < 60000; i++) {
+          const v = Math.floor(Math.random() * 25);
+          ctx.fillStyle = `rgb(${25+v}, ${30+v}, ${36+v})`;
+          ctx.fillRect(Math.random() * size, Math.random() * size, 3, 2);
+          // Relief marqué
+          const b = Math.floor(Math.random() * 80) - 40;
+          bumpCtx.fillStyle = `rgb(${128+b}, ${128+b}, ${128+b})`;
+          bumpCtx.fillRect(Math.random() * size, Math.random() * size, 4, 3);
+        }
+      } else if (type === 'grey_stone') {
+        // Pierre structurée moderne
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(0, 0, size, size);
+        for (let i = 0; i < 50000; i++) {
+          const v = Math.floor(Math.random() * 30) - 15;
+          ctx.fillStyle = `rgb(${100+v}, ${116+v}, ${139+v})`;
+          ctx.fillRect(Math.random() * size, Math.random() * size, 3, 3);
+          const b = Math.floor(Math.random() * 50) - 25;
+          bumpCtx.fillStyle = `rgb(${128+b}, ${128+b}, ${128+b})`;
+          bumpCtx.fillRect(Math.random() * size, Math.random() * size, 3, 3);
+        }
+      } else if (type === 'concrete') {
+        // Béton ciré minéral
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(0, 0, size, size);
+        for (let i = 0; i < 35000; i++) {
+          const v = Math.floor(Math.random() * 20) - 10;
+          ctx.fillStyle = `rgb(${148+v}, ${163+v}, ${184+v})`;
+          ctx.fillRect(Math.random() * size, Math.random() * size, 4, 4);
+        }
+      } else if (type === 'marble') {
+        // Marbre blanc veiné
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, 0, size, size);
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(0, 100);
+        ctx.bezierCurveTo(300, 250, 700, 150, size, 500);
+        ctx.moveTo(100, 0);
+        ctx.bezierCurveTo(400, 450, 600, 750, 800, size);
+        ctx.stroke();
+      } else if (type === 'travertine') {
+        // Travertin structuré beige
+        ctx.fillStyle = '#d6c5ad';
+        ctx.fillRect(0, 0, size, size);
+        for (let i = 0; i < 40000; i++) {
+          const v = Math.floor(Math.random() * 30) - 15;
+          ctx.fillStyle = `rgb(${214+v}, ${197+v}, ${173+v})`;
+          ctx.fillRect(Math.random() * size, Math.random() * size, 4, 2);
+        }
+      } else {
+        // Béton mural
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(0, 0, size, size);
       }
 
-      ctx.strokeStyle = groutColor;
+      // Tracé des grands carreaux 60x120 (ratio 2:1)
+      const stepX = size / 2; // 2 carreaux en largeur
+      const stepY = size / 4; // 4 carreaux en longueur (grand format)
+
+      // Joints fins et creusés dans le bump map
+      ctx.strokeStyle = isFloor ? 'rgba(0,0,0,0.5)' : 'rgba(100,116,139,0.3)';
       ctx.lineWidth = 4;
-      const stepX = tileSize;
-      const stepY = aspect ? tileSize * aspect : tileSize;
+      bumpCtx.strokeStyle = '#202020'; // creux prononcé
+      bumpCtx.lineWidth = 6;
 
-      for (let x = 0; x <= 512; x += stepX) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, 512);
-        ctx.stroke();
+      for (let x = 0; x <= size; x += stepX) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, size); ctx.stroke();
+        bumpCtx.beginPath(); bumpCtx.moveTo(x, 0); bumpCtx.lineTo(x, size); bumpCtx.stroke();
       }
-      for (let y = 0; y <= 512; y += stepY) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(512, y);
-        ctx.stroke();
+      for (let y = 0; y <= size; y += stepY) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(size, y); ctx.stroke();
+        bumpCtx.beginPath(); bumpCtx.moveTo(0, y); bumpCtx.lineTo(size, y); bumpCtx.stroke();
       }
 
-      const tex = new THREE.CanvasTexture(c);
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      return tex;
+      const map = new THREE.CanvasTexture(c);
+      map.wrapS = THREE.RepeatWrapping;
+      map.wrapT = THREE.RepeatWrapping;
+
+      const bumpMap = new THREE.CanvasTexture(bumpC);
+      bumpMap.wrapS = THREE.RepeatWrapping;
+      bumpMap.wrapT = THREE.RepeatWrapping;
+
+      return { map, bumpMap };
     }
 
     function init() {
@@ -228,18 +396,17 @@ html_realistic = """<!DOCTYPE html>
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
 
-      // Éclairage réaliste intérieur
-      const ambLight = new THREE.AmbientLight(0xffffff, 0.65);
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.75);
       scene.add(ambLight);
 
-      const mainLight = new THREE.DirectionalLight(0xfff7ed, 0.85);
+      const mainLight = new THREE.DirectionalLight(0xfff7ed, 0.95);
       mainLight.position.set(4, 7, 3);
       mainLight.castShadow = true;
       mainLight.shadow.mapSize.width = 1024;
       mainLight.shadow.mapSize.height = 1024;
       scene.add(mainLight);
 
-      const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.35);
+      const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.4);
       fillLight.position.set(-4, 5, -2);
       scene.add(fillLight);
 
@@ -253,18 +420,17 @@ html_realistic = """<!DOCTYPE html>
       if (roomMesh) scene.remove(roomMesh);
       if (floorMesh) scene.remove(floorMesh);
 
-      // Textures carrelage sélectionnées
+      // Sol grands carreaux avec relief
       const floorChoice = document.getElementById('tileFloorColor').value;
-      let floorBase = '#1e293b', floorGrout = '#0f172a';
-      if (floorChoice === 'light') { floorBase = '#94a3b8'; floorGrout = '#cbd5e1'; }
-      if (floorChoice === 'beige') { floorBase = '#d7c4a3'; floorGrout = '#f5ede0'; }
-
-      const floorTex = createTileCanvas(floorBase, floorGrout, 128, 1);
-      floorTex.repeat.set(roomL, roomW);
+      const floorMaps = generateTileMaps(floorChoice, true);
+      floorMaps.map.repeat.set(roomL / 1.2, roomW / 1.2);
+      floorMaps.bumpMap.repeat.set(roomL / 1.2, roomW / 1.2);
 
       const floorGeo = new THREE.PlaneGeometry(roomL, roomW);
       const floorMat = new THREE.MeshStandardMaterial({ 
-        map: floorTex, 
+        map: floorMaps.map, 
+        bumpMap: floorMaps.bumpMap,
+        bumpScale: 0.04,
         roughness: 0.35, 
         metalness: 0.05 
       });
@@ -273,45 +439,39 @@ html_realistic = """<!DOCTYPE html>
       floorMesh.receiveShadow = true;
       scene.add(floorMesh);
 
-      // Faïence murs
+      // Murs grands carreaux
       const wallChoice = document.getElementById('tileWallColor').value;
-      let wallBase = '#f1f5f9', wallGrout = '#cbd5e1', aspect = 1;
-      if (wallChoice === 'metro') { wallBase = '#ffffff'; wallGrout = '#94a3b8'; aspect = 0.5; }
-      if (wallChoice === 'concrete') { wallBase = '#cbd5e1'; wallGrout = '#94a3b8'; aspect = 1; }
-
-      const wallTex = createTileCanvas(wallBase, wallGrout, 90, aspect);
-      wallTex.repeat.set(roomL, roomH);
+      const wallMaps = generateTileMaps(wallChoice, false);
+      wallMaps.map.repeat.set(roomL / 1.2, roomH / 1.2);
+      wallMaps.bumpMap.repeat.set(roomL / 1.2, roomH / 1.2);
 
       const wallMat = new THREE.MeshStandardMaterial({ 
-        map: wallTex, 
-        roughness: 0.5, 
+        map: wallMaps.map, 
+        bumpMap: wallMaps.bumpMap,
+        bumpScale: 0.02,
+        roughness: 0.45, 
         side: THREE.DoubleSide 
       });
 
       const group = new THREE.Group();
 
-      // Mur de fond
+      // Mur fond
       const backGeo = new THREE.PlaneGeometry(roomL, roomH);
       const backWall = new THREE.Mesh(backGeo, wallMat);
       backWall.position.set(0, roomH / 2, -roomW / 2);
       backWall.receiveShadow = true;
       group.add(backWall);
 
-      // Mur de gauche
-      const leftWallTex = wallTex.clone();
-      leftWallTex.repeat.set(roomW, roomH);
-      const leftWallMat = wallMat.clone();
-      leftWallMat.map = leftWallTex;
-
+      // Mur gauche
       const leftGeo = new THREE.PlaneGeometry(roomW, roomH);
-      const leftWall = new THREE.Mesh(leftGeo, leftWallMat);
+      const leftWall = new THREE.Mesh(leftGeo, wallMat);
       leftWall.rotation.y = Math.PI / 2;
       leftWall.position.set(-roomL / 2, roomH / 2, 0);
       leftWall.receiveShadow = true;
       group.add(leftWall);
 
-      // Plinthe sol anthracite
-      const plinthMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 });
+      // Plinthes
+      const plinthMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3 });
       const pBack = new THREE.Mesh(new THREE.BoxGeometry(roomL, 0.08, 0.02), plinthMat);
       pBack.position.set(0, 0.04, -roomW / 2 + 0.01);
       group.add(pBack);
@@ -321,9 +481,9 @@ html_realistic = """<!DOCTYPE html>
       pLeft.position.set(-roomL / 2 + 0.01, 0.04, 0);
       group.add(pLeft);
 
-      // Colonne gaine technique angle
+      // Gaine technique d'angle
       const columnGeo = new THREE.BoxGeometry(0.35, roomH, 0.35);
-      const columnMat = new THREE.MeshStandardMaterial({ color: 0x475569 });
+      const columnMat = new THREE.MeshStandardMaterial({ color: 0x334155 });
       const column = new THREE.Mesh(columnGeo, columnMat);
       column.position.set(-roomL / 2 + 0.175, roomH / 2, -roomW / 2 + 0.175);
       group.add(column);
@@ -333,9 +493,35 @@ html_realistic = """<!DOCTYPE html>
       camera.lookAt(0, 0.6, 0);
     }
 
-    // Matériau Chrome brillant pour mitigeurs et profilés
-    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.95, roughness: 0.1 });
-    const darkChromeMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.3 });
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.95, roughness: 0.08 });
+    const darkChromeMat = new THREE.MeshStandardMaterial({ color: 0x27272a, metalness: 0.85, roughness: 0.25 });
+
+    function selectObject(obj) {
+      selectedItem = obj;
+      if (obj) {
+        selectedBox.style.display = 'flex';
+        selectedNameEl.textContent = obj.userData.name || 'Équipement';
+      } else {
+        selectedBox.style.display = 'none';
+      }
+    }
+
+    function deleteSelectedItem() {
+      if (!selectedItem) return;
+      const idx = items.indexOf(selectedItem);
+      if (idx !== -1) {
+        scene.remove(selectedItem);
+        items.splice(idx, 1);
+        selectObject(null);
+        updateBill();
+      }
+    }
+
+    function rotateSelectedItem() {
+      if (selectedItem) {
+        selectedItem.rotation.y += Math.PI / 2;
+      }
+    }
 
     function addItem(type) {
       const group = new THREE.Group();
@@ -351,59 +537,54 @@ html_realistic = """<!DOCTYPE html>
         const gW = Math.min(inputGW / 100, sL);
         const gH = inputGH / 100;
 
-        // Receveur extra-plat blanc texturé
-        const trayGeo = new THREE.BoxGeometry(sL, 0.05, sW);
-        const trayMat = new THREE.MeshStandardMaterial({ color: 0xfdfdfd, roughness: 0.2 });
+        // Receveur extra-plat blanc minéral
+        const trayGeo = new THREE.BoxGeometry(sL, 0.04, sW);
+        const trayMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.2 });
         const tray = new THREE.Mesh(trayGeo, trayMat);
-        tray.position.y = 0.025;
+        tray.position.y = 0.02;
         tray.castShadow = true;
         tray.receiveShadow = true;
         group.add(tray);
 
-        // Bonde chromée carrée grand débit
-        const drainGeo = new THREE.BoxGeometry(0.12, 0.005, 0.12);
-        const drain = new THREE.Mesh(drainGeo, chromeMat);
-        drain.position.set(-sL / 2 + 0.2, 0.051, 0);
+        // Bonde chromée carrée
+        const drain = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.005, 0.12), chromeMat);
+        drain.position.set(-sL / 2 + 0.2, 0.041, 0);
         group.add(drain);
 
         // Paroi vitrée sécurit
-        const glassGeo = new THREE.BoxGeometry(gW, gH, 0.015);
+        const glassGeo = new THREE.BoxGeometry(gW, gH, 0.012);
         const glassMat = new THREE.MeshPhysicalMaterial({ 
           color: 0xffffff, 
-          transmission: 0.92, 
+          transmission: 0.95, 
           opacity: 1, 
           transparent: true, 
-          roughness: 0.05, 
+          roughness: 0.02, 
           ior: 1.5 
         });
         const glass = new THREE.Mesh(glassGeo, glassMat);
-        glass.position.set(-sL / 2 + gW / 2, gH / 2 + 0.05, sW / 2 - 0.015);
+        glass.position.set(-sL / 2 + gW / 2, gH / 2 + 0.04, sW / 2 - 0.015);
         glass.castShadow = true;
         group.add(glass);
 
-        // Profilé mural chromé pour la paroi
-        const profileGeo = new THREE.BoxGeometry(0.03, gH, 0.03);
-        const profile = new THREE.Mesh(profileGeo, chromeMat);
-        profile.position.set(-sL / 2 + 0.015, gH / 2 + 0.05, sW / 2 - 0.015);
+        // Profilé mural
+        const profile = new THREE.Mesh(new THREE.BoxGeometry(0.025, gH, 0.025), chromeMat);
+        profile.position.set(-sL / 2 + 0.012, gH / 2 + 0.04, sW / 2 - 0.015);
         group.add(profile);
 
-        // Barre de renfort / stabilisation haute
-        const barGeo = new THREE.CylinderGeometry(0.01, 0.01, sW);
-        const bar = new THREE.Mesh(barGeo, chromeMat);
+        // Barre de renfort
+        const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, sW), chromeMat);
         bar.rotation.x = Math.PI / 2;
         bar.position.set(-sL / 2 + gW - 0.05, gH + 0.02, 0);
         group.add(bar);
 
-        // Mitigeur thermostatique mural chromé avec inverseur
-        const mixerGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.28);
-        const mixer = new THREE.Mesh(mixerGeo, chromeMat);
+        // Mitigeur mural
+        const mixer = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.28), chromeMat);
         mixer.rotation.z = Math.PI / 2;
         mixer.position.set(-sL / 2 + 0.08, 1.1, 0);
         group.add(mixer);
 
-        // Rosaces murales
-        const rosetteGeo = new THREE.CylinderGeometry(0.035, 0.035, 0.04);
-        const r1 = new THREE.Mesh(rosetteGeo, chromeMat);
+        // Rosaces
+        const r1 = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.04), chromeMat);
         r1.rotation.y = Math.PI / 2;
         r1.position.set(-sL / 2 + 0.02, 1.1, -0.075);
         group.add(r1);
@@ -411,27 +592,22 @@ html_realistic = """<!DOCTYPE html>
         r2.position.set(-sL / 2 + 0.02, 1.1, 0.075);
         group.add(r2);
 
-        // Colonne de douche montante
-        const colPipeGeo = new THREE.CylinderGeometry(0.012, 0.012, 1.1);
-        const colPipe = new THREE.Mesh(colPipeGeo, chromeMat);
+        // Colonne montante & ciel de pluie
+        const colPipe = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.1), chromeMat);
         colPipe.position.set(-sL / 2 + 0.08, 1.65, 0);
         group.add(colPipe);
 
-        // Pomme de tête pluie carrée 30x30 cm
-        const rainHeadGeo = new THREE.BoxGeometry(0.3, 0.02, 0.3);
-        const rainHead = new THREE.Mesh(rainHeadGeo, chromeMat);
+        const rainHead = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.02, 0.3), chromeMat);
         rainHead.position.set(-sL / 2 + 0.25, 2.2, 0);
         group.add(rainHead);
 
-        const rainArmGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.22);
-        const rainArm = new THREE.Mesh(rainArmGeo, chromeMat);
+        const rainArm = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.22), chromeMat);
         rainArm.rotation.z = Math.PI / 2;
         rainArm.position.set(-sL / 2 + 0.16, 2.2, 0);
         group.add(rainArm);
 
-        // Douchette à main avec flexible
-        const wandGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.2);
-        const wand = new THREE.Mesh(wandGeo, chromeMat);
+        // Douchette
+        const wand = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.2), chromeMat);
         wand.position.set(-sL / 2 + 0.1, 1.3, 0.14);
         group.add(wand);
 
@@ -454,63 +630,53 @@ html_realistic = """<!DOCTYPE html>
 
         let isDouble = (sinkTypeMode === 'auto') ? (width >= 1.2) : (sinkTypeMode === '2');
 
-        // Couleur meuble
-        let boxColor = 0xb48a58; // Bois chêne
+        let boxColor = 0xb48a58;
         let boxRough = 0.6;
-        if (colorMode === 'anthra') { boxColor = 0x262626; boxRough = 0.3; }
+        if (colorMode === 'anthra') { boxColor = 0x1f2937; boxRough = 0.3; }
         if (colorMode === 'blue') { boxColor = 0x1e3a8a; boxRough = 0.4; }
-        if (colorMode === 'white') { boxColor = 0xf8fafc; boxRough = 0.15; }
+        if (colorMode === 'white') { boxColor = 0xf8fafc; boxRough = 0.2; }
 
         const cabinetMat = new THREE.MeshStandardMaterial({ color: boxColor, roughness: boxRough });
 
-        // Caisson suspendu à deux tiroirs
-        const cabGeo = new THREE.BoxGeometry(width, 0.55, depth);
-        const cab = new THREE.Mesh(cabGeo, cabinetMat);
+        // Caisson suspendu
+        const cab = new THREE.Mesh(new THREE.BoxGeometry(width, 0.55, depth), cabinetMat);
         cab.position.y = height - 0.28;
         cab.castShadow = true;
         group.add(cab);
 
-        // Poignées fines profilées noires ou alu
-        const handleMat = darkChromeMat;
-        const h1 = new THREE.Mesh(new THREE.BoxGeometry(width * 0.7, 0.02, 0.02), handleMat);
+        // Poignées fines profilées
+        const h1 = new THREE.Mesh(new THREE.BoxGeometry(width * 0.7, 0.02, 0.02), darkChromeMat);
         h1.position.set(0, height - 0.15, depth / 2 + 0.01);
         group.add(h1);
         const h2 = h1.clone();
         h2.position.set(0, height - 0.42, depth / 2 + 0.01);
         group.add(h2);
 
-        // Plan vasque moulé en céramique blanche
-        const topGeo = new THREE.BoxGeometry(width + 0.02, 0.04, depth + 0.02);
+        // Plan vasque céramique
         const ceramicMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
-        const topMesh = new THREE.Mesh(topGeo, ceramicMat);
+        const topMesh = new THREE.Mesh(new THREE.BoxGeometry(width + 0.02, 0.04, depth + 0.02), ceramicMat);
         topMesh.position.y = height;
         topMesh.receiveShadow = true;
         group.add(topMesh);
 
-        // Fonction pour créer une vasque creusée + mitigeur complet
         const buildBasinAndTap = (posX) => {
-          // Vasque ovale/rectangulaire
           const basinBowl = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.14, 0.34), ceramicMat);
           basinBowl.position.set(posX, height - 0.05, 0.04);
           group.add(basinBowl);
 
-          // Bonde clic-clac chromée au fond
           const drain = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.01), chromeMat);
           drain.position.set(posX, height - 0.07, 0.04);
           group.add(drain);
 
-          // Corps du mitigeur chromé
           const tapBody = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.18), chromeMat);
           tapBody.position.set(posX, height + 0.09, -0.16);
           group.add(tapBody);
 
-          // Bec verseur courbé
           const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.12), chromeMat);
           spout.rotation.x = Math.PI / 2.8;
           spout.position.set(posX, height + 0.16, -0.10);
           group.add(spout);
 
-          // Levier de commande mitigeur
           const lever = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.01, 0.08), chromeMat);
           lever.position.set(posX, height + 0.18, -0.16);
           group.add(lever);
@@ -530,15 +696,14 @@ html_realistic = """<!DOCTYPE html>
         };
 
       } else if (type === 'mirror') {
-        // Grand miroir rétro-éclairé LED
-        const mGeo = new THREE.BoxGeometry(0.9, 0.75, 0.02);
-        const mMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.0, metalness: 0.98 });
-        const mirror = new THREE.Mesh(mGeo, mMat);
+        const mirror = new THREE.Mesh(
+          new THREE.BoxGeometry(0.9, 0.75, 0.02), 
+          new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.0, metalness: 0.98 })
+        );
         mirror.position.y = 1.48;
         mirror.castShadow = true;
         group.add(mirror);
 
-        // Bandeau LED lumineux
         const ledFrame = new THREE.Mesh(
           new THREE.BoxGeometry(0.94, 0.79, 0.008), 
           new THREE.MeshBasicMaterial({ color: 0xffedd5 })
@@ -549,31 +714,31 @@ html_realistic = """<!DOCTYPE html>
         group.userData = { type: 'mirror', name: 'Miroir LED Rétro-éclairé 90x75' };
 
       } else if (type === 'wc') {
-        // Habillage coffrage bâti suspendu
-        const frameGeo = new THREE.BoxGeometry(0.55, 1.2, 0.22);
-        const frameMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.5 });
-        const frame = new THREE.Mesh(frameGeo, frameMat);
+        const frame = new THREE.Mesh(
+          new THREE.BoxGeometry(0.55, 1.2, 0.22), 
+          new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 })
+        );
         frame.position.y = 0.6;
         frame.castShadow = true;
         group.add(frame);
 
-        // Plaque de déclenchement double-touche chromée
         const flushPlate = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.01), chromeMat);
         flushPlate.position.set(0, 1.0, 0.115);
         group.add(flushPlate);
 
-        // Cuvette suspendue carénée blanche
-        const bowlGeo = new THREE.CylinderGeometry(0.18, 0.14, 0.35, 16);
-        const ceramicMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
-        const bowl = new THREE.Mesh(bowlGeo, ceramicMat);
+        const bowl = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.18, 0.14, 0.35, 16), 
+          new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 })
+        );
         bowl.rotation.x = -Math.PI / 2;
         bowl.position.set(0, 0.38, 0.32);
         bowl.castShadow = true;
         group.add(bowl);
 
-        // Abattant extra-plat frein de chute
-        const seatGeo = new THREE.BoxGeometry(0.36, 0.02, 0.44);
-        const seat = new THREE.Mesh(seatGeo, new THREE.MeshStandardMaterial({ color: 0xffffff }));
+        const seat = new THREE.Mesh(
+          new THREE.BoxGeometry(0.36, 0.02, 0.44), 
+          new THREE.MeshStandardMaterial({ color: 0xffffff })
+        );
         seat.position.set(0, 0.42, 0.32);
         group.add(seat);
 
@@ -583,6 +748,7 @@ html_realistic = """<!DOCTYPE html>
       group.position.set(0, 0, 0);
       scene.add(group);
       items.push(group);
+      selectObject(group);
       updateBill();
     }
 
@@ -694,8 +860,10 @@ html_realistic = """<!DOCTYPE html>
         if (intersects.length > 0) {
           let root = intersects[0].object;
           while (root.parent && root.parent !== scene) root = root.parent;
-          selectedItem = root;
+          selectObject(root);
           isDragging = true;
+        } else {
+          selectObject(null);
         }
       };
 
@@ -720,7 +888,6 @@ html_realistic = """<!DOCTYPE html>
 
       const handlePointerUp = () => {
         isDragging = false;
-        selectedItem = null;
       };
 
       container.addEventListener('mousedown', (e) => handlePointerDown(e.clientX, e.clientY));
@@ -741,21 +908,22 @@ html_realistic = """<!DOCTYPE html>
         }
       });
 
-      // Support tactile smartphone / tablette
+      // Touche Clavier SUPPR / BACKSPACE pour supprimer l'élément actif
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          // Si on n'est pas en train d'écrire dans un champ de texte
+          if (document.activeElement.tagName !== 'INPUT') {
+            deleteSelectedItem();
+          }
+        }
+      });
+
+      // Tactile Smartphone / Tablette
       container.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
           const now = Date.now();
           if (now - lastTapTime < 300) {
-            const rect = container.getBoundingClientRect();
-            mouse.x = ((e.touches[0].clientX - rect.left) / container.clientWidth) * 2 - 1;
-            mouse.y = -((e.touches[0].clientY - rect.top) / container.clientHeight) * 2 + 1;
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(items, true);
-            if (intersects.length > 0) {
-              let root = intersects[0].object;
-              while (root.parent && root.parent !== scene) root = root.parent;
-              root.rotation.y += Math.PI / 2;
-            }
+            rotateSelectedItem();
           }
           lastTapTime = now;
           handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
@@ -769,6 +937,9 @@ html_realistic = """<!DOCTYPE html>
       }, { passive: true });
 
       window.addEventListener('touchend', handlePointerUp);
+
+      document.getElementById('btnDeleteSelected').onclick = deleteSelectedItem;
+      document.getElementById('btnRotateSelected').onclick = rotateSelectedItem;
 
       document.getElementById('btnAddShower').onclick = () => addItem('shower');
       document.getElementById('btnAddSink').onclick = () => addItem('sink');
@@ -792,6 +963,7 @@ html_realistic = """<!DOCTYPE html>
       document.getElementById('btnClear').onclick = () => {
         items.forEach(i => scene.remove(i));
         items.length = 0;
+        selectObject(null);
         updateBill();
       };
 
@@ -823,6 +995,6 @@ html_realistic = """<!DOCTYPE html>
 """
 
 with open("index.html", "w", encoding="utf-8") as f:
-    f.write(html_realistic)
+    f.write(code)
 
-print("FILE_UPDATED_REALISTIC: index.html")
+print("FILE_UPDATED_V5: index.html")
