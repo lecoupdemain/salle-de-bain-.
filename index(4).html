@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurateur Salle de Bain & Métré Express</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { display: flex; height: 100vh; overflow: hidden; background: #1e293b; color: #f8fafc; }
+    #sidebar { width: 360px; background: #0f172a; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; border-right: 1px solid #334155; }
+    #viewport-container { flex: 1; position: relative; }
+    #viewport { width: 100%; height: 100%; }
+    h2 { font-size: 1.1rem; color: #38bdf8; border-bottom: 1px solid #334155; padding-bottom: 5px; }
+    .control-group { display: flex; flex-direction: column; gap: 8px; }
+    .row { display: flex; gap: 8px; }
+    label { font-size: 0.8rem; color: #94a3b8; }
+    input, select, button { padding: 8px 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #fff; font-size: 0.85rem; }
+    input:focus, select:focus { outline: 1px solid #38bdf8; }
+    button { cursor: pointer; background: #0284c7; border: none; font-weight: 500; transition: 0.2s; }
+    button:hover { background: #0369a1; }
+    button.secondary { background: #334155; }
+    button.secondary:hover { background: #475569; }
+    .btn-danger { background: #ef4444; }
+    .btn-danger:hover { background: #dc2626; }
+    #bill { background: #1e293b; border-radius: 6px; padding: 12px; font-size: 0.8rem; border: 1px solid #334155; }
+    #bill ul { list-style: none; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+    #bill li { display: flex; justify-content: space-between; border-bottom: 1px dashed #334155; padding-bottom: 2px; }
+    .badge { background: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+    .note-safety { font-size: 0.75rem; color: #10b981; margin-top: 4px; }
+    #overlay-hint { position: absolute; bottom: 15px; left: 15px; background: rgba(15,23,42,0.8); padding: 8px 12px; border-radius: 6px; font-size: 0.75rem; color: #cbd5e1; pointer-events: none; }
+  </style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <h2>1. Dimensions Pièce (mètres)</h2>
+    <div class="control-group">
+      <div class="row">
+        <div style="flex:1;">
+          <label>Longueur</label>
+          <input type="number" id="roomL" value="3.0" step="0.1" min="1.5">
+        </div>
+        <div style="flex:1;">
+          <label>Largeur</label>
+          <input type="number" id="roomW" value="2.2" step="0.1" min="1.5">
+        </div>
+      </div>
+      <button class="secondary" id="btnUpdateRoom">Redimensionner la pièce</button>
+    </div>
+
+    <h2>2. Ajouter un équipement</h2>
+    <div class="control-group">
+      <div class="row">
+        <button id="btnAddShower" style="flex:1;">+ Douche</button>
+        <button id="btnAddSink" style="flex:1;">+ Vasque</button>
+        <button id="btnAddWC" style="flex:1;">+ WC</button>
+      </div>
+    </div>
+
+    <h2>3. Matériel & Options</h2>
+    <div class="control-group">
+      <label><input type="checkbox" id="chkEncastre" checked> Robinetterie douche encastrée (applique/platine)</label>
+      <label><input type="checkbox" id="chkRainShower" checked> Pommeau pluie de douche plafonnier/mural</label>
+      <label>Nombre de patères :</label>
+      <input type="number" id="numHooks" value="2" min="0" max="10">
+    </div>
+
+    <h2>4. Métré & Matériel Estimé</h2>
+    <div id="bill">
+      <div style="color: #38bdf8;">Liste de matériel chantier :</div>
+      <div class="note-safety">Marge intégrée : +15% et +1,50 m forfaitaire par ligne</div>
+      <ul id="billList"></ul>
+    </div>
+
+    <div class="control-group">
+      <button id="btnCapture" style="background:#10b981;">Enregistrer Photo Client</button>
+      <button class="btn-danger" id="btnClear">Vider la pièce</button>
+    </div>
+  </div>
+
+  <div id="viewport-container">
+    <div id="viewport"></div>
+    <div id="overlay-hint">Clic gauche + glisser : Tourner la vue | Clic droit : Déplacer | Clic sur un meuble : Le déplacer sur le sol</div>
+  </div>
+
+  <script>
+    let scene, camera, renderer, roomMesh, floorMesh;
+    let roomL = 3.0, roomW = 2.2, roomH = 2.5;
+    const items = [];
+    let selectedItem = null;
+    let isDragging = false;
+
+    const container = document.getElementById('viewport');
+
+    function init() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0f172a);
+
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(0, 4.5, 4.5);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.shadowMap.enabled = true;
+      container.appendChild(renderer.domElement);
+
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+      scene.add(ambLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      dirLight.position.set(5, 8, 5);
+      dirLight.castShadow = true;
+      scene.add(dirLight);
+
+      buildRoom();
+      setupEvents();
+      animate();
+      updateBill();
+    }
+
+    function buildRoom() {
+      if (roomMesh) scene.remove(roomMesh);
+      if (floorMesh) scene.remove(floorMesh);
+
+      const floorGeo = new THREE.PlaneGeometry(roomL, roomW);
+      const floorMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 });
+      floorMesh = new THREE.Mesh(floorGeo, floorMat);
+      floorMesh.rotation.x = -Math.PI / 2;
+      floorMesh.receiveShadow = true;
+      scene.add(floorMesh);
+
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.6, side: THREE.DoubleSide });
+      const group = new THREE.Group();
+
+      const backGeo = new THREE.PlaneGeometry(roomL, roomH);
+      const backWall = new THREE.Mesh(backGeo, wallMat);
+      backWall.position.set(0, roomH / 2, -roomW / 2);
+      group.add(backWall);
+
+      const leftGeo = new THREE.PlaneGeometry(roomW, roomH);
+      const leftWall = new THREE.Mesh(leftGeo, wallMat);
+      leftWall.rotation.y = Math.PI / 2;
+      leftWall.position.set(-roomL / 2, roomH / 2, 0);
+      group.add(leftWall);
+
+      const columnGeo = new THREE.BoxGeometry(0.3, roomH, 0.3);
+      const columnMat = new THREE.MeshStandardMaterial({ color: 0x475569 });
+      const column = new THREE.Mesh(columnGeo, columnMat);
+      column.position.set(-roomL / 2 + 0.15, roomH / 2, -roomW / 2 + 0.15);
+      group.add(column);
+
+      roomMesh = group;
+      scene.add(roomMesh);
+      camera.lookAt(0, 0.5, 0);
+    }
+
+    function addItem(type) {
+      const group = new THREE.Group();
+      let geo, mat, mesh;
+
+      if (type === 'shower') {
+        geo = new THREE.BoxGeometry(1.2, 0.1, 0.8);
+        mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
+        mesh = new THREE.Mesh(geo, mat);
+        mesh.position.y = 0.05;
+        group.add(mesh);
+
+        const glassGeo = new THREE.BoxGeometry(1.2, 1.9, 0.02);
+        const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.9, opacity: 1, transparent: true, roughness: 0.1 });
+        const glass = new THREE.Mesh(glassGeo, glassMat);
+        glass.position.set(0, 1.0, 0.39);
+        group.add(glass);
+
+        group.userData = { type: 'shower', name: 'Douche 120x80' };
+      } else if (type === 'sink') {
+        geo = new THREE.BoxGeometry(0.8, 0.85, 0.5);
+        mat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.3 });
+        mesh = new THREE.Mesh(geo, mat);
+        mesh.position.y = 0.85 / 2;
+        group.add(mesh);
+
+        const basinGeo = new THREE.BoxGeometry(0.7, 0.1, 0.4);
+        const basinMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        const basin = new THREE.Mesh(basinGeo, basinMat);
+        basin.position.y = 0.85;
+        group.add(basin);
+
+        group.userData = { type: 'sink', name: 'Meuble Vasque 80' };
+      } else if (type === 'wc') {
+        geo = new THREE.BoxGeometry(0.5, 1.1, 0.25);
+        mat = new THREE.MeshStandardMaterial({ color: 0x94a3b8 });
+        mesh = new THREE.Mesh(geo, mat);
+        mesh.position.y = 0.55;
+        group.add(mesh);
+
+        const bowlGeo = new THREE.BoxGeometry(0.38, 0.4, 0.45);
+        const bowlMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        const bowl = new THREE.Mesh(bowlGeo, bowlMat);
+        bowl.position.set(0, 0.35, 0.3);
+        group.add(bowl);
+
+        group.userData = { type: 'wc', name: 'WC Suspendu' };
+      }
+
+      group.position.set(0, 0, 0);
+      scene.add(group);
+      items.push(group);
+      updateBill();
+    }
+
+    function updateBill() {
+      const billList = document.getElementById('billList');
+      billList.innerHTML = '';
+
+      let rawMulti = 0;
+      let rawPVC40 = 0;
+      let rawPVC100 = 0;
+      let countShower = 0;
+      let countSink = 0;
+      let countWC = 0;
+
+      const feedX = -roomL / 2;
+      const feedZ = -roomW / 2;
+
+      items.forEach(item => {
+        const dist = Math.abs(item.position.x - feedX) + Math.abs(item.position.z - feedZ);
+        
+        if (item.userData.type === 'shower') {
+          countShower++;
+          rawMulti += (dist + 1.2) * 2;
+          rawPVC40 += dist + 0.5;
+        } else if (item.userData.type === 'sink') {
+          countSink++;
+          rawMulti += (dist + 0.8) * 2;
+          rawPVC40 += dist + 0.6;
+        } else if (item.userData.type === 'wc') {
+          countWC++;
+          rawMulti += (dist + 0.5);
+          rawPVC100 += dist + 0.4;
+        }
+      });
+
+      const safetyExtra = 1.5;
+      const calcTotal = (rawVal) => rawVal > 0 ? ((rawVal * 1.15) + safetyExtra).toFixed(1) : 0;
+
+      const totalMulti = calcTotal(rawMulti);
+      const totalPVC40 = calcTotal(rawPVC40);
+      const totalPVC100 = calcTotal(rawPVC100);
+
+      const addRow = (label, qty) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${label}</span> <span class="badge">${qty}</span>`;
+        billList.appendChild(li);
+      };
+
+      if (items.length === 0) {
+        billList.innerHTML = '<li style="color:#64748b;">Placez des sanitaires pour calculer le métré.</li>';
+        return;
+      }
+
+      addRow('Tube Multicouche (EF/EC)', `${totalMulti} m`);
+      if (totalPVC40 > 0) addRow('Tube PVC évacuation Ø40', `${totalPVC40} m`);
+      if (totalPVC100 > 0) addRow('Tube PVC évacuation Ø100', `${totalPVC100} m`);
+
+      if (countShower > 0) {
+        if (document.getElementById('chkEncastre').checked) {
+          addRow('Kit platine applique mitigeur encastré', `${countShower} kit(s)`);
+        }
+        if (document.getElementById('chkRainShower').checked) {
+          addRow('Bras & pommeau pluie de douche', `${countShower} u`);
+        }
+        addRow('Bonde de douche grand débit', `${countShower} u`);
+      }
+
+      if (countSink > 0) {
+        addRow('Robinets d’arrêt 3/8"', `${countSink * 2} u`);
+        addRow('Siphon et bonde clic-clac', `${countSink} u`);
+      }
+
+      const hooks = parseInt(document.getElementById('numHooks').value, 10);
+      if (hooks > 0) {
+        addRow('Patères murales peignoirs/serviettes', `${hooks} u`);
+      }
+    }
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
+    function setupEvents() {
+      // Événements Souris
+      const handlePointerDown = (clientX, clientY) => {
+        const rect = container.getBoundingClientRect();
+        mouse.x = ((clientX - rect.left) / container.clientWidth) * 2 - 1;
+        mouse.y = -((clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(items, true);
+
+        if (intersects.length > 0) {
+          let root = intersects[0].object;
+          while (root.parent && root.parent !== scene) {
+            root = root.parent;
+          }
+          selectedItem = root;
+          isDragging = true;
+        }
+      };
+
+      const handlePointerMove = (clientX, clientY) => {
+        if (!isDragging || !selectedItem) return;
+
+        const rect = container.getBoundingClientRect();
+        mouse.x = ((clientX - rect.left) / container.clientWidth) * 2 - 1;
+        mouse.y = -((clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersectPoint = new THREE.Vector3();
+        raycaster.ray.intersectPlane(plane, intersectPoint);
+
+        if (intersectPoint) {
+          const pad = 0.4;
+          selectedItem.position.x = Math.max(-roomL / 2 + pad, Math.min(roomL / 2 - pad, intersectPoint.x));
+          selectedItem.position.z = Math.max(-roomW / 2 + pad, Math.min(roomW / 2 - pad, intersectPoint.z));
+          updateBill();
+        }
+      };
+
+      const handlePointerUp = () => {
+        isDragging = false;
+        selectedItem = null;
+      };
+
+      container.addEventListener('mousedown', (e) => handlePointerDown(e.clientX, e.clientY));
+      window.addEventListener('mousemove', (e) => handlePointerMove(e.clientX, e.clientY));
+      window.addEventListener('mouseup', handlePointerUp);
+
+      // Support écran tactile / téléphone
+      container.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && isDragging) {
+          handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchend', handlePointerUp);
+
+      document.getElementById('btnAddShower').onclick = () => addItem('shower');
+      document.getElementById('btnAddSink').onclick = () => addItem('sink');
+      document.getElementById('btnAddWC').onclick = () => addItem('wc');
+
+      document.getElementById('btnUpdateRoom').onclick = () => {
+        roomL = parseFloat(document.getElementById('roomL').value) || 3.0;
+        roomW = parseFloat(document.getElementById('roomW').value) || 2.2;
+        buildRoom();
+        updateBill();
+      };
+
+      document.getElementById('chkEncastre').onchange = updateBill;
+      document.getElementById('chkRainShower').onchange = updateBill;
+      document.getElementById('numHooks').oninput = updateBill;
+
+      document.getElementById('btnClear').onclick = () => {
+        items.forEach(i => scene.remove(i));
+        items.length = 0;
+        updateBill();
+      };
+
+      document.getElementById('btnCapture').onclick = () => {
+        renderer.render(scene, camera);
+        const dataUrl = renderer.domElement.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = 'plan-salle-de-bain-client.png';
+        link.href = dataUrl;
+        link.click();
+      };
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    init();
+  </script>
+</body>
+</html>
