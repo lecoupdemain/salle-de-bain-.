@@ -1,87 +1,168 @@
-<!DOCTYPE html>
+html_realistic = """<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configurateur Salle de Bain & Métré Express</title>
+  <title>Configurateur Salle de Bain 3D Réaliste & Métré</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { display: flex; height: 100vh; overflow: hidden; background: #1e293b; color: #f8fafc; }
-    #sidebar { width: 360px; background: #0f172a; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; border-right: 1px solid #334155; }
+    body { display: flex; height: 100vh; overflow: hidden; background: #0f172a; color: #f8fafc; }
+    #sidebar { width: 380px; background: #111827; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; border-right: 1px solid #374151; }
     #viewport-container { flex: 1; position: relative; }
     #viewport { width: 100%; height: 100%; }
-    h2 { font-size: 1.1rem; color: #38bdf8; border-bottom: 1px solid #334155; padding-bottom: 5px; }
+    h2 { font-size: 0.95rem; color: #38bdf8; border-bottom: 1px solid #374151; padding-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
     .control-group { display: flex; flex-direction: column; gap: 8px; }
-    .row { display: flex; gap: 8px; }
-    label { font-size: 0.8rem; color: #94a3b8; }
-    input, select, button { padding: 8px 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #fff; font-size: 0.85rem; }
+    .row { display: flex; gap: 8px; align-items: flex-end; }
+    label { font-size: 0.75rem; color: #9ca3af; }
+    input, select, button { padding: 7px 10px; border-radius: 6px; border: 1px solid #374151; background: #1f2937; color: #fff; font-size: 0.82rem; width: 100%; }
     input:focus, select:focus { outline: 1px solid #38bdf8; }
-    button { cursor: pointer; background: #0284c7; border: none; font-weight: 500; transition: 0.2s; }
+    button { cursor: pointer; background: #0284c7; border: none; font-weight: 500; transition: 0.15s; }
     button:hover { background: #0369a1; }
-    button.secondary { background: #334155; }
-    button.secondary:hover { background: #475569; }
-    .btn-danger { background: #ef4444; }
-    .btn-danger:hover { background: #dc2626; }
-    #bill { background: #1e293b; border-radius: 6px; padding: 12px; font-size: 0.8rem; border: 1px solid #334155; }
-    #bill ul { list-style: none; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
-    #bill li { display: flex; justify-content: space-between; border-bottom: 1px dashed #334155; padding-bottom: 2px; }
-    .badge { background: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-    .note-safety { font-size: 0.75rem; color: #10b981; margin-top: 4px; }
-    #overlay-hint { position: absolute; bottom: 15px; left: 15px; background: rgba(15,23,42,0.8); padding: 8px 12px; border-radius: 6px; font-size: 0.75rem; color: #cbd5e1; pointer-events: none; }
+    button.secondary { background: #374151; }
+    button.secondary:hover { background: #4b5563; }
+    .btn-danger { background: #dc2626; }
+    .btn-danger:hover { background: #b91c1c; }
+    #bill { background: #1f2937; border-radius: 6px; padding: 10px; font-size: 0.78rem; border: 1px solid #374151; }
+    #bill ul { list-style: none; margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+    #bill li { display: flex; justify-content: space-between; border-bottom: 1px dashed #374151; padding-bottom: 2px; }
+    .badge { background: #0284c7; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+    .note-safety { font-size: 0.72rem; color: #10b981; margin-top: 2px; }
+    #overlay-hint { position: absolute; bottom: 12px; left: 12px; background: rgba(17,24,39,0.85); padding: 8px 12px; border-radius: 6px; font-size: 0.75rem; color: #d1d5db; pointer-events: none; backdrop-filter: blur(4px); }
+    .item-section { background: #192233; padding: 10px; border-radius: 6px; border: 1px solid #283548; display: flex; flex-direction: column; gap: 8px; }
   </style>
 </head>
 <body>
 
   <div id="sidebar">
-    <h2>1. Dimensions Pièce (mètres)</h2>
+    <h2>1. Pièce & Carrelage</h2>
     <div class="control-group">
       <div class="row">
         <div style="flex:1;">
-          <label>Longueur</label>
-          <input type="number" id="roomL" value="3.0" step="0.1" min="1.5">
+          <label>Longueur (m)</label>
+          <input type="number" id="roomL" value="3.0" step="0.1" min="1.0">
         </div>
         <div style="flex:1;">
-          <label>Largeur</label>
-          <input type="number" id="roomW" value="2.2" step="0.1" min="1.5">
+          <label>Largeur (m)</label>
+          <input type="number" id="roomW" value="2.2" step="0.1" min="1.0">
         </div>
       </div>
-      <button class="secondary" id="btnUpdateRoom">Redimensionner la pièce</button>
+      <div class="row">
+        <div style="flex:1;">
+          <label>Teinte Carrelage Sol</label>
+          <select id="tileFloorColor">
+            <option value="dark">Gris Anthracite 60x60</option>
+            <option value="light">Gris Clair Béton 60x60</option>
+            <option value="beige">Beige Travertin 60x60</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label>Faïence Murale</label>
+          <select id="tileWallColor">
+            <option value="white">Faïence Blanche Marbre</option>
+            <option value="metro">Métro Blanc Joint Gris</option>
+            <option value="concrete">Béton Ciré Clair</option>
+          </select>
+        </div>
+      </div>
+      <button class="secondary" id="btnUpdateRoom">Actualiser la pièce</button>
     </div>
 
-    <h2>2. Ajouter un équipement</h2>
+    <h2>2. Bac & Paroi de Douche</h2>
+    <div class="item-section">
+      <div class="row">
+        <div style="flex:1;">
+          <label>Bac L (cm)</label>
+          <input type="number" id="showerL" value="120" step="5" min="70" max="250">
+        </div>
+        <div style="flex:1;">
+          <label>Bac l (cm)</label>
+          <input type="number" id="showerW" value="80" step="5" min="70" max="180">
+        </div>
+      </div>
+      <div class="row">
+        <div style="flex:1;">
+          <label>Largeur Paroi Verre (cm)</label>
+          <input type="number" id="glassW" value="100" step="5" min="40" max="200">
+        </div>
+        <div style="flex:1;">
+          <label>Hauteur Paroi (cm)</label>
+          <input type="number" id="glassH" value="200" step="5" min="160" max="220">
+        </div>
+      </div>
+      <button id="btnAddShower">+ Poser Douche Complète</button>
+    </div>
+
+    <h2>3. Meuble Vasque Réaliste</h2>
+    <div class="item-section">
+      <div class="row">
+        <div style="flex:1;">
+          <label>Largeur meuble (cm)</label>
+          <input type="number" id="sinkW" value="80" step="5" min="50" max="220">
+        </div>
+        <div style="flex:1;">
+          <label>Vasques</label>
+          <select id="sinkType">
+            <option value="auto">Auto (selon taille)</option>
+            <option value="1">1 Vasque</option>
+            <option value="2">2 Vasques</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div style="flex:1;">
+          <label>Couleur Caisson</label>
+          <select id="sinkColor">
+            <option value="wood">Chêne Clair Naturel</option>
+            <option value="anthra">Gris Anthracite Mat</option>
+            <option value="blue">Bleu Nuit Profond</option>
+            <option value="white">Blanc Laqué</option>
+          </select>
+        </div>
+      </div>
+      <button id="btnAddSink">+ Poser Meuble Vasque</button>
+    </div>
+
+    <h2>4. Miroir LED & Sanitaire</h2>
     <div class="control-group">
       <div class="row">
-        <button id="btnAddShower" style="flex:1;">+ Douche</button>
-        <button id="btnAddSink" style="flex:1;">+ Vasque</button>
-        <button id="btnAddWC" style="flex:1;">+ WC</button>
+        <button id="btnAddMirror" style="flex:1;">+ Grand Miroir LED</button>
+        <button id="btnAddWC" style="flex:1;">+ Bâti WC Suspendu</button>
       </div>
     </div>
 
-    <h2>3. Matériel & Options</h2>
+    <h2>5. Robinetterie & Quincaillerie</h2>
     <div class="control-group">
-      <label><input type="checkbox" id="chkEncastre" checked> Robinetterie douche encastrée (applique/platine)</label>
-      <label><input type="checkbox" id="chkRainShower" checked> Pommeau pluie de douche plafonnier/mural</label>
-      <label>Nombre de patères :</label>
-      <input type="number" id="numHooks" value="2" min="0" max="10">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input type="checkbox" id="chkEncastre" checked style="width:auto;"> Mitigeur douche encastré (corps + platine)
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input type="checkbox" id="chkRainShower" checked style="width:auto;"> Pommeau pluie plafond/mural 30x30 cm
+      </label>
+      <div class="row">
+        <div style="flex:1;">
+          <label>Patères serviettes :</label>
+          <input type="number" id="numHooks" value="2" min="0" max="10">
+        </div>
+      </div>
     </div>
 
-    <h2>4. Métré & Matériel Estimé</h2>
+    <h2>6. Métré & Matériel Chantier</h2>
     <div id="bill">
-      <div style="color: #38bdf8;">Liste de matériel chantier :</div>
+      <div style="color: #38bdf8; font-weight:600;">Calcul automatique des fournitures :</div>
       <div class="note-safety">Marge intégrée : +15% et +1,50 m forfaitaire par ligne</div>
       <ul id="billList"></ul>
     </div>
 
     <div class="control-group">
-      <button id="btnCapture" style="background:#10b981;">Enregistrer Photo Client</button>
+      <button id="btnCapture" style="background:#10b981;">Enregistrer Photo Rendu 3D</button>
       <button class="btn-danger" id="btnClear">Vider la pièce</button>
     </div>
   </div>
 
   <div id="viewport-container">
     <div id="viewport"></div>
-    <div id="overlay-hint">Clic gauche + glisser : Tourner la vue | Clic droit : Déplacer | Clic sur un meuble : Le déplacer sur le sol</div>
+    <div id="overlay-hint">Clic / Doigt pour glisser un meuble sur le sol. Double-clic / double-tap pour faire pivoter à 90°.</div>
   </div>
 
   <script>
@@ -90,28 +171,77 @@
     const items = [];
     let selectedItem = null;
     let isDragging = false;
+    let lastTapTime = 0;
 
     const container = document.getElementById('viewport');
 
+    // Générateurs de textures carrelage procédurales
+    function createTileCanvas(baseColor, groutColor, tileSize, aspect) {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 512;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = baseColor;
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Micro texture grain
+      for (let i = 0; i < 5000; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)';
+        ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
+      }
+
+      ctx.strokeStyle = groutColor;
+      ctx.lineWidth = 4;
+      const stepX = tileSize;
+      const stepY = aspect ? tileSize * aspect : tileSize;
+
+      for (let x = 0; x <= 512; x += stepX) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 512);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= 512; y += stepY) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(512, y);
+        ctx.stroke();
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
     function init() {
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0f172a);
+      scene.background = new THREE.Color(0x0a0f1d);
 
       camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-      camera.position.set(0, 4.5, 4.5);
+      camera.position.set(0, 4.3, 4.5);
 
-      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: "high-performance" });
       renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
 
-      const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+      // Éclairage réaliste intérieur
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.65);
       scene.add(ambLight);
 
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-      dirLight.position.set(5, 8, 5);
-      dirLight.castShadow = true;
-      scene.add(dirLight);
+      const mainLight = new THREE.DirectionalLight(0xfff7ed, 0.85);
+      mainLight.position.set(4, 7, 3);
+      mainLight.castShadow = true;
+      mainLight.shadow.mapSize.width = 1024;
+      mainLight.shadow.mapSize.height = 1024;
+      scene.add(mainLight);
+
+      const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.35);
+      fillLight.position.set(-4, 5, -2);
+      scene.add(fillLight);
 
       buildRoom();
       setupEvents();
@@ -123,84 +253,331 @@
       if (roomMesh) scene.remove(roomMesh);
       if (floorMesh) scene.remove(floorMesh);
 
+      // Textures carrelage sélectionnées
+      const floorChoice = document.getElementById('tileFloorColor').value;
+      let floorBase = '#1e293b', floorGrout = '#0f172a';
+      if (floorChoice === 'light') { floorBase = '#94a3b8'; floorGrout = '#cbd5e1'; }
+      if (floorChoice === 'beige') { floorBase = '#d7c4a3'; floorGrout = '#f5ede0'; }
+
+      const floorTex = createTileCanvas(floorBase, floorGrout, 128, 1);
+      floorTex.repeat.set(roomL, roomW);
+
       const floorGeo = new THREE.PlaneGeometry(roomL, roomW);
-      const floorMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 });
+      const floorMat = new THREE.MeshStandardMaterial({ 
+        map: floorTex, 
+        roughness: 0.35, 
+        metalness: 0.05 
+      });
       floorMesh = new THREE.Mesh(floorGeo, floorMat);
       floorMesh.rotation.x = -Math.PI / 2;
       floorMesh.receiveShadow = true;
       scene.add(floorMesh);
 
-      const wallMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.6, side: THREE.DoubleSide });
+      // Faïence murs
+      const wallChoice = document.getElementById('tileWallColor').value;
+      let wallBase = '#f1f5f9', wallGrout = '#cbd5e1', aspect = 1;
+      if (wallChoice === 'metro') { wallBase = '#ffffff'; wallGrout = '#94a3b8'; aspect = 0.5; }
+      if (wallChoice === 'concrete') { wallBase = '#cbd5e1'; wallGrout = '#94a3b8'; aspect = 1; }
+
+      const wallTex = createTileCanvas(wallBase, wallGrout, 90, aspect);
+      wallTex.repeat.set(roomL, roomH);
+
+      const wallMat = new THREE.MeshStandardMaterial({ 
+        map: wallTex, 
+        roughness: 0.5, 
+        side: THREE.DoubleSide 
+      });
+
       const group = new THREE.Group();
 
+      // Mur de fond
       const backGeo = new THREE.PlaneGeometry(roomL, roomH);
       const backWall = new THREE.Mesh(backGeo, wallMat);
       backWall.position.set(0, roomH / 2, -roomW / 2);
+      backWall.receiveShadow = true;
       group.add(backWall);
 
+      // Mur de gauche
+      const leftWallTex = wallTex.clone();
+      leftWallTex.repeat.set(roomW, roomH);
+      const leftWallMat = wallMat.clone();
+      leftWallMat.map = leftWallTex;
+
       const leftGeo = new THREE.PlaneGeometry(roomW, roomH);
-      const leftWall = new THREE.Mesh(leftGeo, wallMat);
+      const leftWall = new THREE.Mesh(leftGeo, leftWallMat);
       leftWall.rotation.y = Math.PI / 2;
       leftWall.position.set(-roomL / 2, roomH / 2, 0);
+      leftWall.receiveShadow = true;
       group.add(leftWall);
 
-      const columnGeo = new THREE.BoxGeometry(0.3, roomH, 0.3);
+      // Plinthe sol anthracite
+      const plinthMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 });
+      const pBack = new THREE.Mesh(new THREE.BoxGeometry(roomL, 0.08, 0.02), plinthMat);
+      pBack.position.set(0, 0.04, -roomW / 2 + 0.01);
+      group.add(pBack);
+
+      const pLeft = new THREE.Mesh(new THREE.BoxGeometry(roomW, 0.08, 0.02), plinthMat);
+      pLeft.rotation.y = Math.PI / 2;
+      pLeft.position.set(-roomL / 2 + 0.01, 0.04, 0);
+      group.add(pLeft);
+
+      // Colonne gaine technique angle
+      const columnGeo = new THREE.BoxGeometry(0.35, roomH, 0.35);
       const columnMat = new THREE.MeshStandardMaterial({ color: 0x475569 });
       const column = new THREE.Mesh(columnGeo, columnMat);
-      column.position.set(-roomL / 2 + 0.15, roomH / 2, -roomW / 2 + 0.15);
+      column.position.set(-roomL / 2 + 0.175, roomH / 2, -roomW / 2 + 0.175);
       group.add(column);
 
       roomMesh = group;
       scene.add(roomMesh);
-      camera.lookAt(0, 0.5, 0);
+      camera.lookAt(0, 0.6, 0);
     }
+
+    // Matériau Chrome brillant pour mitigeurs et profilés
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.95, roughness: 0.1 });
+    const darkChromeMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.3 });
 
     function addItem(type) {
       const group = new THREE.Group();
-      let geo, mat, mesh;
 
       if (type === 'shower') {
-        geo = new THREE.BoxGeometry(1.2, 0.1, 0.8);
-        mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
-        mesh = new THREE.Mesh(geo, mat);
-        mesh.position.y = 0.05;
-        group.add(mesh);
+        const inputL = parseFloat(document.getElementById('showerL').value) || 120;
+        const inputW = parseFloat(document.getElementById('showerW').value) || 80;
+        const inputGW = parseFloat(document.getElementById('glassW').value) || 100;
+        const inputGH = parseFloat(document.getElementById('glassH').value) || 200;
 
-        const glassGeo = new THREE.BoxGeometry(1.2, 1.9, 0.02);
-        const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.9, opacity: 1, transparent: true, roughness: 0.1 });
+        const sL = inputL / 100;
+        const sW = inputW / 100;
+        const gW = Math.min(inputGW / 100, sL);
+        const gH = inputGH / 100;
+
+        // Receveur extra-plat blanc texturé
+        const trayGeo = new THREE.BoxGeometry(sL, 0.05, sW);
+        const trayMat = new THREE.MeshStandardMaterial({ color: 0xfdfdfd, roughness: 0.2 });
+        const tray = new THREE.Mesh(trayGeo, trayMat);
+        tray.position.y = 0.025;
+        tray.castShadow = true;
+        tray.receiveShadow = true;
+        group.add(tray);
+
+        // Bonde chromée carrée grand débit
+        const drainGeo = new THREE.BoxGeometry(0.12, 0.005, 0.12);
+        const drain = new THREE.Mesh(drainGeo, chromeMat);
+        drain.position.set(-sL / 2 + 0.2, 0.051, 0);
+        group.add(drain);
+
+        // Paroi vitrée sécurit
+        const glassGeo = new THREE.BoxGeometry(gW, gH, 0.015);
+        const glassMat = new THREE.MeshPhysicalMaterial({ 
+          color: 0xffffff, 
+          transmission: 0.92, 
+          opacity: 1, 
+          transparent: true, 
+          roughness: 0.05, 
+          ior: 1.5 
+        });
         const glass = new THREE.Mesh(glassGeo, glassMat);
-        glass.position.set(0, 1.0, 0.39);
+        glass.position.set(-sL / 2 + gW / 2, gH / 2 + 0.05, sW / 2 - 0.015);
+        glass.castShadow = true;
         group.add(glass);
 
-        group.userData = { type: 'shower', name: 'Douche 120x80' };
+        // Profilé mural chromé pour la paroi
+        const profileGeo = new THREE.BoxGeometry(0.03, gH, 0.03);
+        const profile = new THREE.Mesh(profileGeo, chromeMat);
+        profile.position.set(-sL / 2 + 0.015, gH / 2 + 0.05, sW / 2 - 0.015);
+        group.add(profile);
+
+        // Barre de renfort / stabilisation haute
+        const barGeo = new THREE.CylinderGeometry(0.01, 0.01, sW);
+        const bar = new THREE.Mesh(barGeo, chromeMat);
+        bar.rotation.x = Math.PI / 2;
+        bar.position.set(-sL / 2 + gW - 0.05, gH + 0.02, 0);
+        group.add(bar);
+
+        // Mitigeur thermostatique mural chromé avec inverseur
+        const mixerGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.28);
+        const mixer = new THREE.Mesh(mixerGeo, chromeMat);
+        mixer.rotation.z = Math.PI / 2;
+        mixer.position.set(-sL / 2 + 0.08, 1.1, 0);
+        group.add(mixer);
+
+        // Rosaces murales
+        const rosetteGeo = new THREE.CylinderGeometry(0.035, 0.035, 0.04);
+        const r1 = new THREE.Mesh(rosetteGeo, chromeMat);
+        r1.rotation.y = Math.PI / 2;
+        r1.position.set(-sL / 2 + 0.02, 1.1, -0.075);
+        group.add(r1);
+        const r2 = r1.clone();
+        r2.position.set(-sL / 2 + 0.02, 1.1, 0.075);
+        group.add(r2);
+
+        // Colonne de douche montante
+        const colPipeGeo = new THREE.CylinderGeometry(0.012, 0.012, 1.1);
+        const colPipe = new THREE.Mesh(colPipeGeo, chromeMat);
+        colPipe.position.set(-sL / 2 + 0.08, 1.65, 0);
+        group.add(colPipe);
+
+        // Pomme de tête pluie carrée 30x30 cm
+        const rainHeadGeo = new THREE.BoxGeometry(0.3, 0.02, 0.3);
+        const rainHead = new THREE.Mesh(rainHeadGeo, chromeMat);
+        rainHead.position.set(-sL / 2 + 0.25, 2.2, 0);
+        group.add(rainHead);
+
+        const rainArmGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.22);
+        const rainArm = new THREE.Mesh(rainArmGeo, chromeMat);
+        rainArm.rotation.z = Math.PI / 2;
+        rainArm.position.set(-sL / 2 + 0.16, 2.2, 0);
+        group.add(rainArm);
+
+        // Douchette à main avec flexible
+        const wandGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.2);
+        const wand = new THREE.Mesh(wandGeo, chromeMat);
+        wand.position.set(-sL / 2 + 0.1, 1.3, 0.14);
+        group.add(wand);
+
+        group.userData = { 
+          type: 'shower', 
+          name: `Douche ${inputL}x${inputW} (Paroi ${inputGW}x${inputGH})`, 
+          sL: sL, 
+          sW: sW, 
+          glassW: inputGW, 
+          glassH: inputGH 
+        };
+
       } else if (type === 'sink') {
-        geo = new THREE.BoxGeometry(0.8, 0.85, 0.5);
-        mat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.3 });
-        mesh = new THREE.Mesh(geo, mat);
-        mesh.position.y = 0.85 / 2;
-        group.add(mesh);
+        const inputW = parseFloat(document.getElementById('sinkW').value) || 80;
+        const sinkTypeMode = document.getElementById('sinkType').value;
+        const colorMode = document.getElementById('sinkColor').value;
+        const width = inputW / 100;
+        const depth = 0.52;
+        const height = 0.85;
 
-        const basinGeo = new THREE.BoxGeometry(0.7, 0.1, 0.4);
-        const basinMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-        const basin = new THREE.Mesh(basinGeo, basinMat);
-        basin.position.y = 0.85;
-        group.add(basin);
+        let isDouble = (sinkTypeMode === 'auto') ? (width >= 1.2) : (sinkTypeMode === '2');
 
-        group.userData = { type: 'sink', name: 'Meuble Vasque 80' };
+        // Couleur meuble
+        let boxColor = 0xb48a58; // Bois chêne
+        let boxRough = 0.6;
+        if (colorMode === 'anthra') { boxColor = 0x262626; boxRough = 0.3; }
+        if (colorMode === 'blue') { boxColor = 0x1e3a8a; boxRough = 0.4; }
+        if (colorMode === 'white') { boxColor = 0xf8fafc; boxRough = 0.15; }
+
+        const cabinetMat = new THREE.MeshStandardMaterial({ color: boxColor, roughness: boxRough });
+
+        // Caisson suspendu à deux tiroirs
+        const cabGeo = new THREE.BoxGeometry(width, 0.55, depth);
+        const cab = new THREE.Mesh(cabGeo, cabinetMat);
+        cab.position.y = height - 0.28;
+        cab.castShadow = true;
+        group.add(cab);
+
+        // Poignées fines profilées noires ou alu
+        const handleMat = darkChromeMat;
+        const h1 = new THREE.Mesh(new THREE.BoxGeometry(width * 0.7, 0.02, 0.02), handleMat);
+        h1.position.set(0, height - 0.15, depth / 2 + 0.01);
+        group.add(h1);
+        const h2 = h1.clone();
+        h2.position.set(0, height - 0.42, depth / 2 + 0.01);
+        group.add(h2);
+
+        // Plan vasque moulé en céramique blanche
+        const topGeo = new THREE.BoxGeometry(width + 0.02, 0.04, depth + 0.02);
+        const ceramicMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
+        const topMesh = new THREE.Mesh(topGeo, ceramicMat);
+        topMesh.position.y = height;
+        topMesh.receiveShadow = true;
+        group.add(topMesh);
+
+        // Fonction pour créer une vasque creusée + mitigeur complet
+        const buildBasinAndTap = (posX) => {
+          // Vasque ovale/rectangulaire
+          const basinBowl = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.14, 0.34), ceramicMat);
+          basinBowl.position.set(posX, height - 0.05, 0.04);
+          group.add(basinBowl);
+
+          // Bonde clic-clac chromée au fond
+          const drain = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.01), chromeMat);
+          drain.position.set(posX, height - 0.07, 0.04);
+          group.add(drain);
+
+          // Corps du mitigeur chromé
+          const tapBody = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.18), chromeMat);
+          tapBody.position.set(posX, height + 0.09, -0.16);
+          group.add(tapBody);
+
+          // Bec verseur courbé
+          const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.12), chromeMat);
+          spout.rotation.x = Math.PI / 2.8;
+          spout.position.set(posX, height + 0.16, -0.10);
+          group.add(spout);
+
+          // Levier de commande mitigeur
+          const lever = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.01, 0.08), chromeMat);
+          lever.position.set(posX, height + 0.18, -0.16);
+          group.add(lever);
+        };
+
+        if (isDouble) {
+          buildBasinAndTap(-width / 4);
+          buildBasinAndTap(width / 4);
+        } else {
+          buildBasinAndTap(0);
+        }
+
+        group.userData = { 
+          type: 'sink', 
+          name: `Meuble Vasque ${inputW} cm (${isDouble ? 'Double' : 'Simple'})`, 
+          isDouble: isDouble 
+        };
+
+      } else if (type === 'mirror') {
+        // Grand miroir rétro-éclairé LED
+        const mGeo = new THREE.BoxGeometry(0.9, 0.75, 0.02);
+        const mMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.0, metalness: 0.98 });
+        const mirror = new THREE.Mesh(mGeo, mMat);
+        mirror.position.y = 1.48;
+        mirror.castShadow = true;
+        group.add(mirror);
+
+        // Bandeau LED lumineux
+        const ledFrame = new THREE.Mesh(
+          new THREE.BoxGeometry(0.94, 0.79, 0.008), 
+          new THREE.MeshBasicMaterial({ color: 0xffedd5 })
+        );
+        ledFrame.position.set(0, 1.48, -0.008);
+        group.add(ledFrame);
+
+        group.userData = { type: 'mirror', name: 'Miroir LED Rétro-éclairé 90x75' };
+
       } else if (type === 'wc') {
-        geo = new THREE.BoxGeometry(0.5, 1.1, 0.25);
-        mat = new THREE.MeshStandardMaterial({ color: 0x94a3b8 });
-        mesh = new THREE.Mesh(geo, mat);
-        mesh.position.y = 0.55;
-        group.add(mesh);
+        // Habillage coffrage bâti suspendu
+        const frameGeo = new THREE.BoxGeometry(0.55, 1.2, 0.22);
+        const frameMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.5 });
+        const frame = new THREE.Mesh(frameGeo, frameMat);
+        frame.position.y = 0.6;
+        frame.castShadow = true;
+        group.add(frame);
 
-        const bowlGeo = new THREE.BoxGeometry(0.38, 0.4, 0.45);
-        const bowlMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-        const bowl = new THREE.Mesh(bowlGeo, bowlMat);
-        bowl.position.set(0, 0.35, 0.3);
+        // Plaque de déclenchement double-touche chromée
+        const flushPlate = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.01), chromeMat);
+        flushPlate.position.set(0, 1.0, 0.115);
+        group.add(flushPlate);
+
+        // Cuvette suspendue carénée blanche
+        const bowlGeo = new THREE.CylinderGeometry(0.18, 0.14, 0.35, 16);
+        const ceramicMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
+        const bowl = new THREE.Mesh(bowlGeo, ceramicMat);
+        bowl.rotation.x = -Math.PI / 2;
+        bowl.position.set(0, 0.38, 0.32);
+        bowl.castShadow = true;
         group.add(bowl);
 
-        group.userData = { type: 'wc', name: 'WC Suspendu' };
+        // Abattant extra-plat frein de chute
+        const seatGeo = new THREE.BoxGeometry(0.36, 0.02, 0.44);
+        const seat = new THREE.Mesh(seatGeo, new THREE.MeshStandardMaterial({ color: 0xffffff }));
+        seat.position.set(0, 0.42, 0.32);
+        group.add(seat);
+
+        group.userData = { type: 'wc', name: 'Pack Bâti-support WC Suspendu' };
       }
 
       group.position.set(0, 0, 0);
@@ -217,8 +594,11 @@
       let rawPVC40 = 0;
       let rawPVC100 = 0;
       let countShower = 0;
-      let countSink = 0;
+      let countSinkTaps = 0;
+      let countSinks = 0;
+      let countMirror = 0;
       let countWC = 0;
+      let glassDimensions = [];
 
       const feedX = -roomL / 2;
       const feedZ = -roomW / 2;
@@ -230,14 +610,19 @@
           countShower++;
           rawMulti += (dist + 1.2) * 2;
           rawPVC40 += dist + 0.5;
+          glassDimensions.push(`${item.userData.glassW}x${item.userData.glassH} cm`);
         } else if (item.userData.type === 'sink') {
-          countSink++;
-          rawMulti += (dist + 0.8) * 2;
+          countSinks++;
+          const taps = item.userData.isDouble ? 2 : 1;
+          countSinkTaps += taps;
+          rawMulti += (dist + 0.8) * 2 * taps;
           rawPVC40 += dist + 0.6;
         } else if (item.userData.type === 'wc') {
           countWC++;
           rawMulti += (dist + 0.5);
           rawPVC100 += dist + 0.4;
+        } else if (item.userData.type === 'mirror') {
+          countMirror++;
         }
       });
 
@@ -255,32 +640,41 @@
       };
 
       if (items.length === 0) {
-        billList.innerHTML = '<li style="color:#64748b;">Placez des sanitaires pour calculer le métré.</li>';
+        billList.innerHTML = '<li style="color:#64748b;">Placez des équipements pour calculer le métré.</li>';
         return;
       }
 
-      addRow('Tube Multicouche (EF/EC)', `${totalMulti} m`);
+      addRow('Tube Multicouche gainé (EF/EC)', `${totalMulti} m`);
       if (totalPVC40 > 0) addRow('Tube PVC évacuation Ø40', `${totalPVC40} m`);
-      if (totalPVC100 > 0) addRow('Tube PVC évacuation Ø100', `${totalPVC100} m`);
+      if (totalPVC100 > 0) addRow('Tube PVC évacuation Ø100 (WC)', `${totalPVC100} m`);
 
       if (countShower > 0) {
+        glassDimensions.forEach(dim => {
+          addRow(`Paroi fixe verre trempé 8mm (${dim}) + profilé chromé`, '1 kit');
+        });
         if (document.getElementById('chkEncastre').checked) {
           addRow('Kit platine applique mitigeur encastré', `${countShower} kit(s)`);
         }
         if (document.getElementById('chkRainShower').checked) {
-          addRow('Bras & pommeau pluie de douche', `${countShower} u`);
+          addRow('Pomme de tête pluie 30x30 cm + bras mural', `${countShower} u`);
         }
-        addRow('Bonde de douche grand débit', `${countShower} u`);
+        addRow('Mitigeur thermostatique de douche mural', `${countShower} u`);
+        addRow('Bonde de douche extra-plate grand débit', `${countShower} u`);
       }
 
-      if (countSink > 0) {
-        addRow('Robinets d’arrêt 3/8"', `${countSink * 2} u`);
-        addRow('Siphon et bonde clic-clac', `${countSink} u`);
+      if (countSinks > 0) {
+        addRow('Mitigeur lavabo monocommande chromé', `${countSinkTaps} u`);
+        addRow('Robinets d’arrêt 3/8" avec filtre', `${countSinkTaps * 2} u`);
+        addRow('Siphon extra-plat + bonde clic-clac', `${countSinkTaps} u`);
+      }
+
+      if (countMirror > 0) {
+        addRow('Alimentation électrique 230V miroir LED', `${countMirror} point(s)`);
       }
 
       const hooks = parseInt(document.getElementById('numHooks').value, 10);
       if (hooks > 0) {
-        addRow('Patères murales peignoirs/serviettes', `${hooks} u`);
+        addRow('Patères murales chromées', `${hooks} u`);
       }
     }
 
@@ -289,7 +683,6 @@
     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
     function setupEvents() {
-      // Événements Souris
       const handlePointerDown = (clientX, clientY) => {
         const rect = container.getBoundingClientRect();
         mouse.x = ((clientX - rect.left) / container.clientWidth) * 2 - 1;
@@ -300,9 +693,7 @@
 
         if (intersects.length > 0) {
           let root = intersects[0].object;
-          while (root.parent && root.parent !== scene) {
-            root = root.parent;
-          }
+          while (root.parent && root.parent !== scene) root = root.parent;
           selectedItem = root;
           isDragging = true;
         }
@@ -320,7 +711,7 @@
         raycaster.ray.intersectPlane(plane, intersectPoint);
 
         if (intersectPoint) {
-          const pad = 0.4;
+          const pad = 0.25;
           selectedItem.position.x = Math.max(-roomL / 2 + pad, Math.min(roomL / 2 - pad, intersectPoint.x));
           selectedItem.position.z = Math.max(-roomW / 2 + pad, Math.min(roomW / 2 - pad, intersectPoint.z));
           updateBill();
@@ -336,9 +727,37 @@
       window.addEventListener('mousemove', (e) => handlePointerMove(e.clientX, e.clientY));
       window.addEventListener('mouseup', handlePointerUp);
 
-      // Support écran tactile / téléphone
+      // Rotation au double-clic
+      container.addEventListener('dblclick', (e) => {
+        const rect = container.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(items, true);
+        if (intersects.length > 0) {
+          let root = intersects[0].object;
+          while (root.parent && root.parent !== scene) root = root.parent;
+          root.rotation.y += Math.PI / 2;
+        }
+      });
+
+      // Support tactile smartphone / tablette
       container.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
+          const now = Date.now();
+          if (now - lastTapTime < 300) {
+            const rect = container.getBoundingClientRect();
+            mouse.x = ((e.touches[0].clientX - rect.left) / container.clientWidth) * 2 - 1;
+            mouse.y = -((e.touches[0].clientY - rect.top) / container.clientHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(items, true);
+            if (intersects.length > 0) {
+              let root = intersects[0].object;
+              while (root.parent && root.parent !== scene) root = root.parent;
+              root.rotation.y += Math.PI / 2;
+            }
+          }
+          lastTapTime = now;
           handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
         }
       }, { passive: true });
@@ -353,6 +772,7 @@
 
       document.getElementById('btnAddShower').onclick = () => addItem('shower');
       document.getElementById('btnAddSink').onclick = () => addItem('sink');
+      document.getElementById('btnAddMirror').onclick = () => addItem('mirror');
       document.getElementById('btnAddWC').onclick = () => addItem('wc');
 
       document.getElementById('btnUpdateRoom').onclick = () => {
@@ -361,6 +781,9 @@
         buildRoom();
         updateBill();
       };
+
+      document.getElementById('tileFloorColor').onchange = () => buildRoom();
+      document.getElementById('tileWallColor').onchange = () => buildRoom();
 
       document.getElementById('chkEncastre').onchange = updateBill;
       document.getElementById('chkRainShower').onchange = updateBill;
@@ -376,7 +799,7 @@
         renderer.render(scene, camera);
         const dataUrl = renderer.domElement.toDataURL('image/png');
         const link = document.createElement('a');
-        link.download = 'plan-salle-de-bain-client.png';
+        link.download = 'plan-salle-de-bain-3d-client.png';
         link.href = dataUrl;
         link.click();
       };
@@ -397,3 +820,9 @@
   </script>
 </body>
 </html>
+"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_realistic)
+
+print("FILE_UPDATED_REALISTIC: index.html")
