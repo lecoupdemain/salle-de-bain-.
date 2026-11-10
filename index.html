@@ -30,6 +30,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 #bill b{white-space:nowrap}
 .note{font-size:11.5px;color:var(--mut)}
 #main{flex:1;display:flex;flex-direction:column;min-width:0}
+#steps{display:flex;gap:6px;padding:10px 10px 0;background:var(--panel);flex-wrap:wrap}#steps button{width:auto;padding:8px 14px}#steps button.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.stp{display:none}body[data-step="1"] .stp[data-s="1"],body[data-step="2"] .stp[data-s="2"],body[data-step="3"] .stp[data-s="3"]{display:block}body:not([data-step="2"]) #selbox{display:none!important}
+#start{position:fixed;inset:0;z-index:9;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px;text-align:center}#start h1{font-size:30px}.pre{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;width:min(720px,100%)}.pre button{padding:20px 12px;font-size:15px}.pre svg{color:var(--acc);display:block;margin:0 auto 8px}.pre small{display:block;color:var(--mut);font-weight:400}
 #tabs{display:flex;gap:6px;padding:10px;border-bottom:1px solid var(--line);background:var(--panel)}
 #tabs button{width:auto;padding:8px 16px}
 #tabs button.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
@@ -43,7 +46,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 </head>
 <body>
 <div id="side">
-  <h1>Studio Salle de bain</h1>
+  <h1>Dessinez votre salle de bain</h1>
   <div id="selbox">
     <div class="note">Élément sélectionné</div>
     <b id="selname">-</b>
@@ -69,14 +72,15 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
     </div>
   </div>
   <div id="bill">
-    <h2>Métré plomberie</h2>
+    <h2>Récapitulatif du projet</h2>
     <ul id="billList"></ul>
-    <p class="note" style="margin-top:6px">Longueurs depuis la gaine technique, +15 % et +1,50 m par ligne.</p>
+    <p class="note" style="margin-top:6px">Quantités indicatives, à confirmer par un professionnel.</p>
   </div>
-  <button id="bclear">Vider la pièce</button>
+  <button id="bclear">Vider la pièce</button><button id="bnext" style="background:var(--acc);color:var(--accink);border-color:var(--acc)">Étape suivante</button>
 </div>
+<div id="start"><h1>Dessinez votre salle de bain</h1><p class="note" style="font-size:15px">Choisissez la taille de votre pièce pour commencer. Vous pourrez l’ajuster ensuite.</p><div class="pre" id="pre"></div><button id="resume" style="display:none;width:auto;padding:10px 22px">Reprendre mon projet</button></div>
 <div id="main">
-  <div id="tabs"><button data-v="3d" class="on">Vue 3D</button><button data-v="top">Vue de dessus</button><button data-v="plan">Plan technique</button></div>
+  <div id="steps"><button data-st="1">1 Ma pièce</button><button data-st="2">2 Équipements</button><button data-st="3">3 Récapitulatif</button></div><div id="tabs"><button data-v="3d" class="on">Vue 3D</button><button data-v="top">Vue de dessus</button><button data-v="plan">Plan technique</button></div>
   <div id="stage"><div id="gl"></div><canvas id="plan"></canvas><div id="hint">Glisser un équipement pour le déplacer · glisser le fond pour tourner · molette pour zoomer · Suppr pour effacer</div></div>
 </div>
 <script>
@@ -236,7 +240,7 @@ function snap(it){
  it.rot=[0,Math.PI/2,-Math.PI/2,Math.PI][a.indexOf(m)];contact(it);
 }
 function addItem(type){
- const D=DEF[type],it={id:uid++,type,name:D.n,w:D.w,d:D.d,fin:D.fin||'white',sill:1,x:L/2,z:.3,rot:0};
+ const D=DEF[type],it={id:uid++,type,name:D.n,w:D.w,d:D.d,fin:D.fin||'white',sill:1,x:L/2+((items.length%3)-1)*.6,z:.3,rot:0};
  contact(it);mk(it);items.push(it);select(it);refresh();
 }
 function select(it){
@@ -263,15 +267,20 @@ function portsOf(it){
 function route(k,P){const F=FEED[k];return[F,[P[0],F[1]],P]}
 function rlen(r){return Math.abs(r[1][0]-r[0][0])+Math.abs(r[2][1]-r[1][1])}
 function refresh(){
+ if(canSave)try{localStorage.setItem('sdb',JSON.stringify({L,W,H,tf:$('tf').value,tw:$('tw').value,items:items.map(({g,...r})=>r)}))}catch(e){}
  const ul=$('billList');ul.innerHTML='';
- if(!items.length){ul.innerHTML='<li><span class="note">Ajoutez un équipement pour obtenir le métré.</span></li>'}
+ const ar=(a,b)=>{const li=document.createElement('li');li.innerHTML=`<span>${a}</span><b>${b}</b>`;ul.appendChild(li)};
+ const op=items.reduce((s,i)=>s+(i.type==='door'?i.w*2.04:i.type==='window'?i.w*1.2:0),0);
+ ar('Surface au sol',(L*W).toFixed(1)+' m²');ar('Carrelage sol (+10 % de chute)',(L*W*1.1).toFixed(1)+' m²');
+ ar('Revêtement murs (+10 % de chute)',(Math.max(0,2*(L+W)*H-op)*1.1).toFixed(1)+' m²');
+ if(!items.length){ul.insertAdjacentHTML('beforeend','<li><span class="note">Ajoutez des équipements à l’étape 2 pour compléter le récapitulatif.</span></li>')}
  else{
   let c=0,h=0,d40=0,d100=0;
   items.forEach(it=>{const P=portsOf(it);
    if(P.cold)c+=rlen(route('cold',P.cold));if(P.hot)h+=rlen(route('hot',P.hot));
    if(P.dr){const l=rlen(route('dr',P.dr));if(/^wc/.test(it.type))d100+=l;else d40+=l}});
   const f=v=>v>0?(v*1.15+1.5).toFixed(1)+' m':null,row=(a,b)=>{if(b){const li=document.createElement('li');li.innerHTML=`<span>${a}</span><b>${b}</b>`;ul.appendChild(li)}};
-  row('Multicouche eau froide',f(c));row('Multicouche eau chaude',f(h));row('PVC évacuation Ø40',f(d40));row('PVC évacuation Ø100 (WC)',f(d100));
+  if(PRO){row('Multicouche eau froide',f(c));row('Multicouche eau chaude',f(h));row('PVC évacuation Ø40',f(d40));row('PVC évacuation Ø100 (WC)',f(d100))}
   const n=t=>items.filter(i=>i.type===t).length;
   const taps=items.filter(i=>i.type==='vanity').reduce((a,i)=>a+(i.w>=1.1?2:1),0);
   row('Mitigeurs lavabo',taps?taps+' u':null);
@@ -335,7 +344,7 @@ const ray=new THREE.Raycaster(),fp=new THREE.Plane(new THREE.Vector3(0,1,0),0),v
 function ndc(e){const r=gl.getBoundingClientRect();v2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(v2,cam)}
 function floorPt(){const p=new THREE.Vector3();return ray.ray.intersectPlane(fp,p)?p:null}
 gl.addEventListener('pointerdown',e=>{
- ndc(e);const hit=ray.intersectObjects(items.map(i=>i.g),true);
+ ndc(e);const hit=step===2?ray.intersectObjects(items.map(i=>i.g),true):[];
  if(hit.length){let o=hit[0].object;while(o.parent!==scene)o=o.parent;const it=items.find(i=>i.g===o);select(it);const p=floorPt();drag={it,dx:p?it.x-p.x:0,dz:p?it.z-p.z:0}}
  else{select(null);if(view==='3d')orb={x:e.clientX,y:e.clientY}}
  gl.setPointerCapture(e.pointerId);
@@ -359,7 +368,19 @@ const upd=()=>{if(!sel)return;sel.w=Math.max(.2,(+$('sw').value||40)/100);sel.d=
 const rebuild=()=>{L=Math.max(1.5,(+$('rl').value||300)/100);W=Math.max(1.5,(+$('rw').value||240)/100);H=Math.max(2.2,(+$('rh').value||250)/100);buildRoom();items.forEach(i=>{contact(i);place(i)});resize();refresh()};
 ['rl','rw','rh'].forEach(i=>$(i).onchange=rebuild);$('tf').onchange=$('tw').onchange=buildRoom;
 initScene();
-[['shower',L-.6,.4],['vanity',1.5,.3],['wc',2.0,.3],['mirror',1.5,.02]].forEach(([t,x,z])=>{addItem(t);const it=items[items.length-1];it.x=x;it.z=z;snap(it);place(it)});
+const CFG={email:'contact@votre-site.fr'},PRO=/[?&]pro=1/.test(location.search);let step=1,canSave=false;
+const S=(e,n)=>{e.classList.add('stp');e.dataset.s=n};
+S($('rl').closest('#side>div'),1);S(document.querySelector('.cat'),2);S($('bill'),3);S($('bclear'),3);
+if(!PRO)document.querySelector('[data-v="plan"]').style.display='none';
+function setStep(n){step=Math.max(1,Math.min(3,n));document.body.dataset.step=step;document.querySelectorAll('#steps button').forEach(b=>b.classList.toggle('on',+b.dataset.st===step));$('bnext').textContent=step<3?'Étape suivante':'Envoyer mon projet';if(step!==2)select(null);refresh()}
+function begin(){$('start').style.display='none';canSave=true;setStep(1)}
+function sendProj(){const l=[`Projet salle de bain ${L.toFixed(2)} x ${W.toFixed(2)} m, hauteur ${H} m`,'',...items.map(i=>'- '+i.name+' '+Math.round(i.w*100)+' cm'),'',...[...$('billList').children].map(li=>[...li.children].map(c=>c.textContent).join(' : '))];location.href='mailto:'+CFG.email+'?subject='+encodeURIComponent('Mon projet de salle de bain')+'&body='+encodeURIComponent(l.join('\n'))}
+function loadProj(){try{const s=JSON.parse(localStorage.getItem('sdb'));L=s.L;W=s.W;H=s.H;$('rl').value=L*100;$('rw').value=W*100;$('rh').value=H*100;$('tf').value=s.tf;$('tw').value=s.tw;buildRoom();s.items.forEach(r=>{r.g=null;mk(r);items.push(r);uid=Math.max(uid,r.id+1)});select(null);refresh();return true}catch(e){return false}}
+document.querySelectorAll('#steps button').forEach(b=>b.onclick=()=>setStep(+b.dataset.st));
+$('bnext').onclick=()=>step<3?setStep(step+1):sendProj();
+[['Petite',2,1.8],['Moyenne',3,2.4],['Grande',4,3],['Carrée',2.5,2.5]].forEach(([n,l,w])=>{const b=document.createElement('button');b.innerHTML=`<svg width="100" height="80" viewBox="0 0 100 80"><rect x="${50-l*10}" y="${40-w*10}" width="${l*20}" height="${w*20}" fill="none" stroke="currentColor" stroke-width="3"/></svg><div>${n}</div><small>${l} × ${w} m</small>`;b.onclick=()=>{$('rl').value=l*100;$('rw').value=w*100;rebuild();begin()};$('pre').appendChild(b)});
+try{if(JSON.parse(localStorage.getItem('sdb')).items.length)$('resume').style.display='block'}catch(e){}
+$('resume').onclick=()=>{if(loadProj()){begin();setStep(2)}};
 select(null);refresh();
 </script>
 </body>
