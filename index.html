@@ -449,9 +449,9 @@ button.btn-add span{display:block;font-size:0.8em;color:var(--ink-light);font-we
       Transmettre sur le formulaire du site Le Coup de Main &rarr;
     </button>
 
-    <!-- Bouton 2 : Envoi direct par email à contact@lecoupdemain.fr -->
+    <!-- Bouton 2 : Envoi direct par email à contact@lecoupdemain-services.fr -->
     <button class="btn btn-primary" id="btnSubmitMail" style="padding:13px;background:#25D366;font-size:0.95em;">
-      Envoyer directement à contact@lecoupdemain.fr
+      Envoyer directement à contact@lecoupdemain-services.fr
     </button>
 
     <button class="btn btn-sec prev-btn" data-prev="4">&larr; Modifier mon agencement</button>
@@ -589,11 +589,14 @@ function initScene() {
   loop();
 }
 
+const colSize = 0.16; // Coffrage technique compact 16x16 cm (chute + alim)
+const colHalf = colSize / 2;
+
 function getColCoords() {
-  if (colCorner === 0) return [0.175, 0.175];
-  if (colCorner === 1) return [L - 0.175, 0.175];
-  if (colCorner === 2) return [0.175, W - 0.175];
-  return [L - 0.175, W - 0.175];
+  if (colCorner === 0) return [colHalf, colHalf];
+  if (colCorner === 1) return [L - colHalf, colHalf];
+  if (colCorner === 2) return [colHalf, W - colHalf];
+  return [L - colHalf, W - colHalf];
 }
 
 function buildRoom() {
@@ -637,10 +640,23 @@ function buildRoom() {
   room.add(pl);
 
   const [cx, cz] = getColCoords();
-  colMesh = new THREE.Mesh(new THREE.BoxGeometry(0.35, H, 0.35), M(0x33555F, 0.6));
+  // Coffrage technique hydrofuge carrelé ton-sur-ton avec les murs + profilé d'angle alu
+  const colGeo = new THREE.BoxGeometry(colSize, H, colSize);
+  // Faïence assortie au mur pour intégration discrète
+  colMesh = new THREE.Mesh(colGeo, wMat);
   colMesh.position.set(cx, H/2, cz);
   colMesh.castShadow = true;
+  colMesh.receiveShadow = true;
   room.add(colMesh);
+
+  // Baguette d'angle alu satiné sur l'arête visible
+  const edgeGeo = new THREE.BoxGeometry(0.015, H, 0.015);
+  const edgeMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.8, roughness: 0.2 });
+  const edgeMesh = new THREE.Mesh(edgeGeo, edgeMat);
+  const ex = (cx < L/2) ? cx + colHalf : cx - colHalf;
+  const ez = (cz < W/2) ? cz + colHalf : cz - colHalf;
+  edgeMesh.position.set(ex, H/2, ez);
+  room.add(edgeMesh);
 
   scene.add(room);
   sph.r = Math.max(L, W) * 1.85;
@@ -857,13 +873,91 @@ function portsOf(it) {
   return o;
 }
 
-function route(k, P) {
-  const [cx, cz] = getColCoords();
-  return [[cx, cz], [P[0], cz], P];
+function getWall(x, z) {
+  const dTop = z;
+  const dRight = L - x;
+  const dBottom = W - z;
+  const dLeft = x;
+  const minD = Math.min(dTop, dRight, dBottom, dLeft);
+  if (minD === dTop) return 0;
+  if (minD === dRight) return 1;
+  if (minD === dBottom) return 2;
+  return 3;
 }
 
-function rlen(r) {
-  return Math.abs(r[1][0] - r[0][0]) + Math.abs(r[2][1] - r[1][1]);
+function toPerimeterPos(x, z) {
+  const wall = getWall(x, z);
+  if (wall === 0) return Math.max(0, Math.min(L, x));
+  if (wall === 1) return L + Math.max(0, Math.min(W, z));
+  if (wall === 2) return L + W + (L - Math.max(0, Math.min(L, x)));
+  return 2 * L + W + (W - Math.max(0, Math.min(W, z)));
+}
+
+function posToCoordWithOffset(pos, offset) {
+  const P_tot = 2 * (L + W);
+  pos = ((pos % P_tot) + P_tot) % P_tot;
+  if (pos <= L) {
+    return [pos, offset];
+  } else if (pos <= L + W) {
+    return [L - offset, pos - L];
+  } else if (pos <= 2 * L + W) {
+    return [L - (pos - (L + W)), W - offset];
+  } else {
+    return [offset, W - (pos - (2 * L + W))];
+  }
+}
+
+function route(k, P) {
+  const offsets = { cold: 0.05, hot: 0.09, dr: 0.14 };
+  const off = offsets[k] || 0.07;
+  const P_tot = 2 * (L + W);
+
+  const [cx, cz] = getColCoords();
+  const startPos = toPerimeterPos(cx, cz);
+  const endPos = toPerimeterPos(P[0], P[1]);
+
+  const cwDist = (endPos - startPos + P_tot) % P_tot;
+  const ccwDist = (startPos - endPos + P_tot) % P_tot;
+
+  const cornerPositions = [0, L, L + W, 2 * L + W];
+
+  const path = [];
+  path.push([cx, cz]);
+  path.push(posToCoordWithOffset(startPos, off));
+
+  if (cwDist <= ccwDist) {
+    const intermediate = [];
+    cornerPositions.forEach(cp => {
+      const rel = (cp - startPos + P_tot) % P_tot;
+      if (rel > 0.08 && rel < cwDist - 0.08) {
+        intermediate.push({ rel, pt: posToCoordWithOffset(cp, off) });
+      }
+    });
+    intermediate.sort((a, b) => a.rel - b.rel);
+    intermediate.forEach(item => path.push(item.pt));
+  } else {
+    const intermediate = [];
+    cornerPositions.forEach(cp => {
+      const rel = (startPos - cp + P_tot) % P_tot;
+      if (rel > 0.08 && rel < ccwDist - 0.08) {
+        intermediate.push({ rel, pt: posToCoordWithOffset(cp, off) });
+      }
+    });
+    intermediate.sort((a, b) => a.rel - b.rel);
+    intermediate.forEach(item => path.push(item.pt));
+  }
+
+  path.push(posToCoordWithOffset(endPos, off));
+  path.push(P);
+  return path;
+}
+
+function rlen(pts) {
+  let len = 0;
+  for (let i = 1; i < pts.length; i++) {
+    len += Math.abs(pts[i][0] - pts[i-1][0]) + Math.abs(pts[i][1] - pts[i-1][1]);
+  }
+  return len;
 }
 
 function refresh() {
@@ -1270,7 +1364,7 @@ $('btnGoToSiteContact').onclick = () => {
   }
 };
 
-// 2. Bouton : Envoi direct par email à contact@lecoupdemain.fr
+// 2. Bouton : Envoi direct par email à contact@lecoupdemain-services.fr
 $('btnSubmitMail').onclick = () => {
   const proj = buildProjectSummary();
   if (!proj.nom || !proj.tel || !proj.ville) {
@@ -1281,7 +1375,7 @@ $('btnSubmitMail').onclick = () => {
   const sujet = encodeURIComponent(`Implantation Salle de Bain 3D - ${proj.nom} (${proj.ville})`);
   const corps = encodeURIComponent(proj.text);
 
-  window.location.href = `mailto:contact@lecoupdemain.fr?subject=${sujet}&body=${corps}`;
+  window.location.href = `mailto:contact@lecoupdemain-services.fr?subject=${sujet}&body=${corps}`;
 };
 
 initScene();
