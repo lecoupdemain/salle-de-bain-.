@@ -3,385 +3,1268 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Studio Salle de bain 3D</title>
+<title>Simulateur Implantation Salle de Bain 3D - Le Coup de Main</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-:root{--bg:#f3f1ed;--panel:#fff;--ink:#23211e;--mut:#6d6a64;--line:#dcd8d0;--acc:#9a7432;--accink:#fff;--field:#f6f4f0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15161a;--panel:#1d1f24;--ink:#ece8df;--mut:#9c9a93;--line:#34363d;--acc:#d2a95c;--accink:#1b1608;--field:#262930}}
-:root[data-theme="dark"]{--bg:#15161a;--panel:#1d1f24;--ink:#ece8df;--mut:#9c9a93;--line:#34363d;--acc:#d2a95c;--accink:#1b1608;--field:#262930}
-*{box-sizing:border-box;margin:0}
-html,body{height:100%}
-body{background:var(--bg);color:var(--ink);font:14px/1.4 "Avenir Next","Segoe UI",Roboto,sans-serif;display:flex;overflow:hidden}
-#side{width:340px;min-width:340px;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:16px}
-h1{font-size:19px;font-weight:700;letter-spacing:-.01em}
-h2{font-size:13px;font-weight:700;color:var(--acc);margin-bottom:8px}
-label{font-size:12px;color:var(--mut);display:block;margin-bottom:3px}
-input,select,button{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
-button{cursor:pointer;font-weight:600}
-button:hover{border-color:var(--acc)}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+:root{
+  --primary:#33555F;
+  --primary-dark:#243d45;
+  --accent:#d2a95c;
+  --bg-page:#ECE3BD;
+  --panel-bg:#ffffff;
+  --ink:#222;
+  --ink-light:#666;
+  --line:#dcd8d0;
+  --field-bg:#f8f9fa;
+  --alert-bg:#fff8e6;
+  --alert-border:#e0a800;
+  --green:#25D366;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg-page)}
+body{display:flex;overflow:hidden}
+
+/* Panneau latéral gauche */
+#side{
+  width:430px;
+  min-width:430px;
+  background:var(--panel-bg);
+  border-right:2px solid var(--primary);
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  box-shadow:4px 0 20px rgba(0,0,0,0.1);
+  z-index:20;
+}
+
+/* Entête */
+.header-box{
+  background:var(--primary);
+  color:#fff;
+  padding:16px 20px;
+  border-bottom:3px solid var(--accent);
+}
+.header-box h1{font-size:1.25em;font-weight:600;margin-bottom:4px}
+.header-box p{font-size:0.82em;color:#ECE3BD;line-height:1.4}
+
+/* Fil d'Ariane des 5 Étapes */
+.steps-nav{
+  display:flex;
+  background:#f1ebe1;
+  border-bottom:1px solid var(--line);
+  padding:6px;
+  gap:4px;
+}
+.steps-nav button{
+  flex:1;
+  background:transparent;
+  border:1px solid transparent;
+  border-radius:6px;
+  padding:8px 4px;
+  font-size:0.75em;
+  font-weight:600;
+  color:var(--ink-light);
+  cursor:pointer;
+  transition:all 0.2s;
+  text-align:center;
+}
+.steps-nav button.active{
+  background:var(--primary);
+  color:#fff;
+  box-shadow:0 2px 6px rgba(51,85,95,0.25);
+}
+
+.step-content{padding:20px;display:none;flex-direction:column;gap:16px}
+.step-content.active{display:flex}
+
+/* Avertissement Implantation */
+.warning-box{
+  background:var(--alert-bg);
+  border-left:4px solid var(--alert-border);
+  padding:10px 14px;
+  border-radius:4px;
+  font-size:0.83em;
+  color:#735100;
+  line-height:1.45;
+}
+
+/* Grilles & Formulaires */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.cat button{text-align:left;font-weight:500;padding:9px 10px}
-.cat small{display:block;color:var(--mut);font-size:11px;font-weight:400}
-#selbox{display:none;border:1px solid var(--acc);border-radius:10px;padding:12px;gap:8px;flex-direction:column}
-#bill ul{list-style:none;padding:0;display:flex;flex-direction:column;gap:5px;font-size:12.5px}
-#bill li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding-bottom:4px}
-#bill b{white-space:nowrap}
-.note{font-size:11.5px;color:var(--mut)}
-#main{flex:1;display:flex;flex-direction:column;min-width:0}
-#steps{display:flex;gap:6px;padding:10px 10px 0;background:var(--panel);flex-wrap:wrap}#steps button{width:auto;padding:8px 14px}#steps button.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
-.stp{display:none}body[data-step="1"] .stp[data-s="1"],body[data-step="2"] .stp[data-s="2"],body[data-step="3"] .stp[data-s="3"]{display:block}body:not([data-step="2"]) #selbox{display:none!important}
-#start{position:fixed;inset:0;z-index:9;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px;text-align:center}#start h1{font-size:30px}.pre{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;width:min(720px,100%)}.pre button{padding:20px 12px;font-size:15px}.pre svg{color:var(--acc);display:block;margin:0 auto 8px}.pre small{display:block;color:var(--mut);font-weight:400}
-#tabs{display:flex;gap:6px;padding:10px;border-bottom:1px solid var(--line);background:var(--panel)}
-#tabs button{width:auto;padding:8px 16px}
-#tabs button.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.card-section{
+  background:var(--field-bg);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+label{font-size:0.8em;color:var(--ink-light);font-weight:600;display:block;margin-bottom:3px}
+input,select,textarea{
+  font:inherit;
+  padding:9px 12px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  background:#fff;
+  width:100%;
+  font-size:0.9em;
+}
+input:focus,select:focus,textarea:focus{
+  outline:2px solid var(--primary);
+  border-color:transparent;
+}
+
+/* Boutons */
+button.btn{
+  cursor:pointer;
+  font-weight:600;
+  border-radius:6px;
+  padding:11px 16px;
+  border:none;
+  font-size:0.9em;
+  transition:all 0.2s;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+button.btn-primary{background:var(--primary);color:#fff}
+button.btn-primary:hover{background:var(--primary-dark)}
+button.btn-sec{background:#e2e8f0;color:#334155}
+button.btn-sec:hover{background:#cbd5e1}
+button.btn-danger{background:#dc2626;color:#fff}
+button.btn-danger:hover{background:#b91c1c}
+button.btn-add{
+  background:#fff;
+  border:1px solid var(--primary);
+  color:var(--primary);
+  padding:10px;
+  text-align:left;
+  font-size:0.85em;
+}
+button.btn-add:hover{background:#f0f5f7}
+button.btn-add span{display:block;font-size:0.8em;color:var(--ink-light);font-weight:normal}
+
+/* Élément Sélectionné */
+#selbox{
+  display:none;
+  background:#f8faff;
+  border:2px solid var(--primary);
+  border-radius:8px;
+  padding:14px;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* Récapitulatif */
+#billList{list-style:none;display:flex;flex-direction:column;gap:6px;font-size:0.85em}
+#billList li{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding-bottom:3px}
+#billList b{white-space:nowrap;color:var(--primary)}
+
+/* Zone 3D & Plan */
+#main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
+#tabs{display:flex;gap:8px;padding:10px 16px;background:var(--panel-bg);border-bottom:1px solid var(--line)}
+#tabs button{
+  padding:8px 18px;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:#fff;
+  font-size:0.85em;
+  font-weight:600;
+  color:var(--primary);
+  cursor:pointer;
+}
+#tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 #stage{flex:1;position:relative;min-height:0}
 #gl,#plan{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
-#gl canvas{display:block}
-#plan{display:none;background:#12263f}
-#hint{position:absolute;left:12px;bottom:12px;background:rgba(20,20,24,.78);color:#eee;padding:7px 12px;border-radius:8px;font-size:12px;pointer-events:none}
-@media (max-width:760px){body{flex-direction:column-reverse}#side{width:100%;min-width:0;height:46vh;border-right:0;border-top:1px solid var(--line)}}
+#plan{display:none;background:#0d1b2a}
+#hint{
+  position:absolute;
+  left:16px;
+  bottom:16px;
+  background:rgba(51,85,95,0.88);
+  color:#fff;
+  padding:8px 16px;
+  border-radius:6px;
+  font-size:0.8em;
+  pointer-events:none;
+  box-shadow:0 4px 12px rgba(0,0,0,0.15);
+}
+
+@media(max-width:850px){
+  body{flex-direction:column-reverse}
+  #side{width:100%;min-width:0;height:52vh;border-right:none;border-top:2px solid var(--primary)}
+}
 </style>
 </head>
 <body>
+
 <div id="side">
-  <h1>Dessinez votre salle de bain</h1>
-  <div id="selbox">
-    <div class="note">Élément sélectionné</div>
-    <b id="selname">-</b>
-    <div class="g2"><div><label>Largeur (cm)</label><input type="number" id="sw" step="5" min="20" max="250"></div><div><label>Profondeur (cm)</label><input type="number" id="sd" step="5" min="4" max="120"></div></div>
-    <div id="hrow"><label>Hauteur d’allège (cm)</label><input type="number" id="sh" value="100" step="5" min="0" max="150"></div><div id="finrow"><label>Finition du caisson</label><select id="sfin"></select></div>
-    <div class="g2"><button id="brot">Pivoter 90°</button><button id="bdel">Supprimer</button></div>
+  <div class="header-box">
+    <h1>Le Coup de Main</h1>
+    <p>Studio d'implantation 3D & Réseau de plomberie</p>
   </div>
-  <div>
-    <h2>Pièce et revêtements</h2>
-    <div class="g3"><div><label>Long. (cm)</label><input type="number" id="rl" value="300" step="10" min="150"></div><div><label>Larg. (cm)</label><input type="number" id="rw" value="240" step="10" min="150"></div><div><label>Haut. (cm)</label><input type="number" id="rh" value="250" step="5" min="220"></div></div>
-    <div style="margin-top:8px"><label>Sol</label><select id="tf"><option value="slate">Ardoise anthracite 60×120</option><option value="terrazzo">Terrazzo clair 60×60</option><option value="concrete">Béton minéral 60×60</option><option value="oak">Parquet chêne clair</option><option value="herring">Parquet à chevrons chêne</option><option value="cement">Carreaux de ciment 30×30</option><option value="nero">Marbre noir veiné 60×60</option></select></div>
-    <div style="margin-top:8px"><label>Murs</label><select id="tw"><option value="zellige">Zellige vert sauge 10×10</option><option value="marble">Marbre blanc veiné 60×120</option><option value="metro">Carreau métro blanc 7,5×15</option><option value="trav">Travertin beige 60×120</option><option value="plaster">Enduit tadelakt sable</option><option value="nero">Marbre noir veiné 60×60</option><option value="cement">Carreaux de ciment 30×30</option><option value="concrete">Béton minéral 60×60</option></select></div>
+
+  <!-- Barre d'étapes guidées -->
+  <div class="steps-nav">
+    <button class="active" data-step="1">1. Dimensions</button>
+    <button data-step="2">2. Ouvertures</button>
+    <button data-step="3">3. Conduites</button>
+    <button data-step="4">4. Sanitaires</button>
+    <button data-step="5">5. Devis</button>
   </div>
-  <div class="cat">
-    <h2>Équipements</h2>
-    <div class="g2">
-      <button data-add="vanity">Meuble vasque<small>type GODMORGON</small></button>
-      <button data-add="shower">Douche à l’italienne<small>receveur + paroi</small></button>
-      <button data-add="wc">WC suspendu<small>bâti-support</small></button>
-      <button data-add="bath">Baignoire<small>170×70</small></button>
-      <button data-add="mirror">Miroir LED<small>type LILLÅNGEN</small></button>
-      <button data-add="rad">Sèche-serviettes<small>eau chaude</small></button><button data-add="wc2">WC à poser<small>sans bâti</small></button><button data-add="door">Porte<small>83 cm</small></button><button data-add="window">Fenêtre<small>allège réglable</small></button>
+
+  <!-- Boîte sélection active (visible partout en 3D) -->
+  <div style="padding:0 20px; margin-top:14px;">
+    <div id="selbox">
+      <div style="font-size:0.75em;color:var(--primary);font-weight:700">ÉLÉMENT SÉLECTIONNÉ :</div>
+      <div id="selname" style="font-weight:bold;font-size:0.95em">-</div>
+      <div class="g2">
+        <div><label>Largeur (cm)</label><input type="number" id="sw" step="5"></div>
+        <div><label>Profondeur (cm)</label><input type="number" id="sd" step="5"></div>
+      </div>
+      <div id="finrow"><label>Finition caisson</label><select id="sfin"></select></div>
+      <div class="g2">
+        <button id="brot" class="btn btn-sec">Pivoter 90°</button>
+        <button id="bdel" class="btn btn-danger">Supprimer</button>
+      </div>
     </div>
   </div>
-  <div id="bill">
-    <h2>Récapitulatif du projet</h2>
-    <ul id="billList"></ul>
-    <p class="note" style="margin-top:6px">Quantités indicatives, à confirmer par un professionnel.</p>
+
+  <!-- ÉTAPE 1 : DIMENSIONS PIÈCE & REVÊTEMENTS -->
+  <div class="step-content active" id="step1">
+    <div class="warning-box">
+      <strong>Outil d'implantation à titre indicatif :</strong> ce simulateur vous permet d'estimer vos volumes et d'organiser l'espace. Les passages réels et raccordements définitifs sont validés lors du diagnostic sur place.
+    </div>
+
+    <div class="card-section">
+      <label style="color:var(--primary);font-size:0.9em;">Dimensions de votre pièce (cm)</label>
+      <div class="g3">
+        <div><label>Longueur</label><input type="number" id="rl" value="300" step="10" min="150" max="800"></div>
+        <div><label>Largeur</label><input type="number" id="rw" value="240" step="10" min="150" max="800"></div>
+        <div><label>Hauteur</label><input type="number" id="rh" value="250" step="5" min="200" max="350"></div>
+      </div>
+    </div>
+
+    <div class="card-section">
+      <label style="color:var(--primary);font-size:0.9em;">Carrelage & Finition</label>
+      <div><label>Sol (grands carreaux)</label>
+        <select id="tf">
+          <option value="slate">Ardoise anthracite 60×120 structurée</option>
+          <option value="stone">Pierre grise structurée 60×120</option>
+          <option value="concrete">Béton minéral doux 60×60</option>
+          <option value="oak">Parquet pont de bateau chêne</option>
+        </select>
+      </div>
+      <div style="margin-top:6px;"><label>Murs & Faïence</label>
+        <select id="tw">
+          <option value="marble">Marbre blanc veiné 60×120</option>
+          <option value="trav">Travertin beige structuré 60×120</option>
+          <option value="metro">Carreaux métro blanc brillant</option>
+          <option value="concrete">Béton ciré clair</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card-section">
+      <label style="color:var(--primary);font-size:0.9em;">Chauffage existant dans la pièce ?</label>
+      <select id="heatType">
+        <option value="none">Aucun chauffage actuellement</option>
+        <option value="rad_water">Radiateur sur réseau eau chaude</option>
+        <option value="rad_elec">Radiateur électrique</option>
+        <option value="floor">Plancher chauffant</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary next-btn" data-next="2">Passer aux portes & fenêtres &rarr;</button>
   </div>
-  <button id="bclear">Vider la pièce</button><button id="bnext" style="background:var(--acc);color:var(--accink);border-color:var(--acc)">Étape suivante</button>
+
+  <!-- ÉTAPE 2 : PORTES & FENÊTRES -->
+  <div class="step-content" id="step2">
+    <div class="warning-box">
+      Positionnez vos ouvertures le long des murs. Le configurateur empêchera ensuite de poser une douche sous une fenêtre ou devant une porte.
+    </div>
+
+    <div class="card-section">
+      <label style="color:var(--primary);font-size:0.9em;">Ajouter une porte ou fenêtre</label>
+      <div class="g2">
+        <button class="btn btn-add" id="add_door">+ Porte standard<span>Largeur 83 cm</span></button>
+        <button class="btn btn-add" id="add_window">+ Fenêtre<span>Allège 100 cm</span></button>
+      </div>
+      <p style="font-size:0.8em;color:var(--ink-light);margin-top:4px;">Glissez l'élément contre le mur de votre choix. Les battements s'affichent automatiquement.</p>
+    </div>
+
+    <div class="g2">
+      <button class="btn btn-sec prev-btn" data-prev="1">&larr; Retour</button>
+      <button class="btn btn-primary next-btn" data-next="3">Arrivée des conduites &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 3 : ORIGINE DES CONDUITES (COLONNE TECHNIQUE) -->
+  <div class="step-content" id="step3">
+    <div class="warning-box">
+      D'où arrivent vos conduites d'eau et votre évacuation principale (colonne / chute) ?
+    </div>
+
+    <div class="card-section">
+      <label style="color:var(--primary);font-size:0.9em;">Emplacement de l'arrivée technique / colonne</label>
+      <select id="colPos">
+        <option value="0">Angle Fond-Gauche (Défaut)</option>
+        <option value="1">Angle Fond-Droit</option>
+        <option value="2">Angle Devant-Gauche</option>
+        <option value="3">Angle Devant-Droit</option>
+      </select>
+      <p style="font-size:0.8em;color:var(--ink-light);margin-top:6px;">
+        La gaine technique (colonne) se déplace dans l'angle choisi. Vos tuyaux partiront automatiquement de ce point.
+      </p>
+    </div>
+
+    <div class="g2">
+      <button class="btn btn-sec prev-btn" data-prev="2">&larr; Retour</button>
+      <button class="btn btn-primary next-btn" data-next="4">Placer les sanitaires &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 4 : SANITAIRES & ACCESSOIRES -->
+  <div class="step-content" id="step4">
+    <div class="card-section">
+      <label style="color:var(--primary);font-size:0.9em;">1. Douche à l'italienne</label>
+      <div class="g2">
+        <div><label>Bac L (cm)</label><input type="number" id="sh_l" value="120" step="5" min="70" max="220"></div>
+        <div><label>Bac l (cm)</label><input type="number" id="sh_w" value="80" step="5" min="70" max="140"></div>
+      </div>
+      <div class="g2" style="margin-top:4px;">
+        <div><label>Paroi Verre (cm)</label><input type="number" id="sh_gw" value="100" step="5" min="40" max="180"></div>
+        <div><label>Robinetterie</label>
+          <select id="sh_tap_pos">
+            <option value="wall">Sur mur du fond</option>
+            <option value="side">Sur paroi latérale</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-add" id="add_shower" style="margin-top:6px;">+ Poser cette douche</button>
+    </div>
+
+    <div class="card-section">
+      <label style="color:var(--primary);font-size:0.9em;">2. Meuble Vasque</label>
+      <div class="g2">
+        <div><label>Largeur (cm)</label><input type="number" id="vk_w" value="80" step="5" min="50" max="220"></div>
+        <div><label>Modèle</label>
+          <select id="vk_type">
+            <option value="auto">Auto (1 ou 2 vasques)</option>
+            <option value="1">1 Vasque simple</option>
+            <option value="2">2 Vasques double</option>
+          </select>
+        </div>
+      </div>
+      <div class="g2" style="margin-top:4px;">
+        <div><label>Finition Caisson</label>
+          <select id="vk_fin">
+            <option value="oak">Chêne naturel</option>
+            <option value="anth">Gris anthracite</option>
+            <option value="white">Blanc laqué</option>
+            <option value="blue">Bleu minéral</option>
+          </select>
+        </div>
+        <button class="btn btn-add" id="add_vanity" style="margin-top:auto;">+ Poser ce meuble</button>
+      </div>
+    </div>
+
+    <div class="card-section">
+      <label style="color:var(--primary);font-size:0.9em;">3. Sanitaires & Radiateurs</label>
+      <div class="g3">
+        <button class="btn btn-add" id="add_wc">+ WC Suspendu</button>
+        <button class="btn btn-add" id="add_wc2">+ WC Posé</button>
+        <button class="btn btn-add" id="add_bath">+ Baignoire</button>
+      </div>
+      <div class="g2" style="margin-top:6px;">
+        <button class="btn btn-add" id="add_mirror">+ Miroir LED</button>
+        <button class="btn btn-add" id="add_dryer">+ Sèche-serviettes</button>
+      </div>
+      <div style="margin-top:6px;">
+        <label>Type sèche-serviettes</label>
+        <select id="dryerType">
+          <option value="water">Raccordé au réseau d'eau chaude</option>
+          <option value="elec">Électrique soufflant</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="g2">
+      <button class="btn btn-sec prev-btn" data-prev="3">&larr; Retour</button>
+      <button class="btn btn-primary next-btn" data-next="5">Valider mon projet &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 5 : QUESTIONNAIRE CONTACT & DEVIS PRO -->
+  <div class="step-content" id="step5">
+    <div class="warning-box">
+      <strong>Dernière étape :</strong> transmettez votre implantation à Julien pour recevoir votre chiffrage complet de pose et matériel dans la zone des 3 Frontières.
+    </div>
+
+    <!-- Métré calculé -->
+    <div class="card-section" style="background:#fff;">
+      <label style="color:var(--primary);font-size:0.95em;">Métré indicatif estimé :</label>
+      <div style="font-size:0.75em;color:#059669;margin-bottom:6px;">Sécurité comprise (+15% + 1,50 m forfaitaire)</div>
+      <ul id="billList"></ul>
+    </div>
+
+    <!-- Questionnaire Client -->
+    <div class="card-section">
+      <label style="color:var(--primary);font-size:0.95em;">Vos coordonnées pour l'étude :</label>
+      <div class="g2">
+        <div><label>Nom & Prénom *</label><input type="text" id="cl_nom" placeholder="Ex: Jean Dupont" required></div>
+        <div><label>Téléphone *</label><input type="tel" id="cl_tel" placeholder="Ex: 06 00 00 00 00" required></div>
+      </div>
+      <div class="g2" style="margin-top:6px;">
+        <div><label>Ville ou Code Postal *</label><input type="text" id="cl_ville" placeholder="Ex: Kembs, Saint-Louis..." required></div>
+        <div><label>Email (optionnel)</label><input type="email" id="cl_mail" placeholder="votre@email.fr"></div>
+      </div>
+      <div style="margin-top:6px;">
+        <label>Précisions ou contraintes particulières</label>
+        <textarea id="cl_rem" rows="2" placeholder="Ex: rénovation complète, remplacement baignoire par douche..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btnSubmitMail" style="padding:14px;background:#25D366;font-size:1em;">
+      Envoyer mon projet à contact@lecoupdemain.fr
+    </button>
+    <button class="btn btn-sec prev-btn" data-prev="4">&larr; Modifier mon agencement</button>
+  </div>
 </div>
-<div id="start"><h1>Dessinez votre salle de bain</h1><p class="note" style="font-size:15px">Choisissez la taille de votre pièce pour commencer. Vous pourrez l’ajuster ensuite.</p><div class="pre" id="pre"></div><button id="resume" style="display:none;width:auto;padding:10px 22px">Reprendre mon projet</button></div>
+
+<!-- Zone Principale 3D / Plan technique -->
 <div id="main">
-  <div id="steps"><button data-st="1">1 Ma pièce</button><button data-st="2">2 Équipements</button><button data-st="3">3 Récapitulatif</button></div><div id="tabs"><button data-v="3d" class="on">Vue 3D</button><button data-v="top">Vue de dessus</button><button data-v="plan">Plan technique</button></div>
-  <div id="stage"><div id="gl"></div><canvas id="plan"></canvas><div id="hint">Glisser un équipement pour le déplacer · glisser le fond pour tourner · molette pour zoomer · Suppr pour effacer</div></div>
+  <div id="tabs">
+    <button class="active" data-v="3d">Vue 3D Réaliste</button>
+    <button data-v="top">Vue de dessus</button>
+    <button data-v="plan">Schéma technique des tuyaux</button>
+    <button id="btnCapturePhoto" style="margin-left:auto;background:var(--primary);color:#fff;border-color:var(--primary)">Télécharger Photo / Plan</button>
+  </div>
+
+  <div id="stage">
+    <div id="gl"></div>
+    <canvas id="plan"></canvas>
+    <div id="hint">Glissez les éléments sur le sol · Clic meuble : pivoter / ajuster · Touche Suppr : effacer</div>
+  </div>
 </div>
+
 <script>
-const $=i=>document.getElementById(i);
-let L=3,W=2.4,H=2.5,items=[],sel=null,view='3d',uid=1,drag=null,orb=null;
-const FIN={white:['Blanc brillant',0xf4f4f2],oak:['Chêne clair',0xc8a06a],anth:['Gris anthracite',0x3a3f45],green:['Vert sauge',0x7d8f79]};
-const DEF={vanity:{n:'Meuble vasque',w:.8,d:.47,fin:'oak'},shower:{n:'Douche',w:1.2,d:.8},wc:{n:'WC suspendu',w:.4,d:.55},bath:{n:'Baignoire',w:1.7,d:.7},mirror:{n:'Miroir LED',w:.8,d:.04},rad:{n:'Sèche-serviettes',w:.5,d:.1},wc2:{n:'WC à poser',w:.38,d:.68},door:{n:'Porte',w:.83,d:.06},window:{n:'Fenêtre',w:.8,d:.08}};
-const COL={vanity:'#d2a95c',shower:'#6fb7d6',wc:'#cfd6dd',bath:'#9fc9e6',mirror:'#f0e2b6',rad:'#e08a7a',wc2:'#cfd6dd',door:'#c8a06a',window:'#8fd0ff'};
-for(const k in FIN)$('sfin').add(new Option(FIN[k][0],k));
+const $ = i => document.getElementById(i);
+let L = 3.0, W = 2.4, H = 2.5, items = [], sel = null, view = '3d', uid = 1, drag = null, orb = null;
+let colCorner = 0; // 0: bas-gauche, 1: fond-droit, etc.
 
-/* ---------- Textures procédurales ---------- */
-const KIND={
- slate:{b:[40,44,50],c:2,r:1,v:10,gr:'#15171a',gl:.5,sp:1},
- terrazzo:{b:[222,214,200],c:2,r:2,v:6,gr:'#bdb5a6',gl:.4,fl:1},
- concrete:{b:[150,152,152],c:2,r:2,v:8,gr:'#8a8c8c',gl:.7,sp:1},
- oak:{b:[196,156,104],c:1,r:8,v:14,gr:'#6b4f2f',gl:.5,wood:1},
- marble:{b:[238,238,236],c:2,r:1,v:3,gr:'#cfd0d0',gl:.12,vein:1},
- zellige:{b:[112,142,120],c:12,r:12,v:20,gr:'#e3e0d6',gl:.1},
- metro:{b:[247,247,245],c:8,r:16,v:3,gr:'#b4b4b0',gl:.12,st:1},
- trav:{b:[214,196,164],c:2,r:1,v:8,gr:'#b9a785',gl:.5,band:1},
- herring:{b:[0,0,0],c:1,r:0,v:0,gr:'#000',gl:.45},cement:{b:[0,0,0],c:1,r:0,v:0,gr:'#000',gl:.35},plaster:{b:[0,0,0],c:1,r:0,v:0,gr:'#000',gl:.85},
- nero:{b:[24,24,27],c:2,r:2,v:4,gr:'#0d0d0f',gl:.08,vein:1}
+const FIN = {
+  oak: ['Chêne clair naturel', 0xb48a58],
+  anth: ['Gris anthracite mat', 0x242831],
+  white: ['Blanc laqué brillant', 0xf8fafc],
+  blue: ['Bleu minéral', 0x1e3a8a]
 };
-function grain(g,S){for(let n=0;n<6000;n++){g.fillStyle=Math.random()<.5?'rgba(0,0,0,.05)':'rgba(255,255,255,.05)';g.fillRect(Math.random()*S,Math.random()*S,2,2)}}
-function special(k,g,S){const R=Math.random;
- if(k==='herring'){const bh=S/8,P=S/2,f=x=>Math.abs((x%P)-P/2);
-  for(let b=-3;b<9;b++)for(let s=0;s<16;s++){const x1=s*S/16,x2=x1+S/16,y=b*bh;
-   g.fillStyle=`rgb(${150+R()*50|0},${105+R()*40|0},${62+R()*30|0})`;
-   g.beginPath();g.moveTo(x1,y+f(x1));g.lineTo(x2,y+f(x2));g.lineTo(x2,y+f(x2)+bh);g.lineTo(x1,y+f(x1)+bh);g.closePath();g.fill();
-   g.strokeStyle='rgba(50,30,15,.6)';g.lineWidth=3;g.stroke();
-   for(let n=0;n<5;n++){g.strokeStyle='rgba(80,50,25,.12)';g.lineWidth=1;g.beginPath();g.moveTo(x1,y+f(x1)+R()*bh);g.lineTo(x2,y+f(x2)+R()*bh);g.stroke()}}}
- else if(k==='cement'){const u=S/4;
-  for(let i=0;i<4;i++)for(let j=0;j<4;j++){const a=(i+j)%2,c1=a?'#c9694a':'#1f3a5f',c2=a?'#1f3a5f':'#c9694a';
-   g.save();g.translate((i+.5)*u,(j+.5)*u);g.beginPath();g.rect(-u/2,-u/2,u,u);g.clip();
-   g.fillStyle='#efe6d3';g.fillRect(-u/2,-u/2,u,u);
-   g.fillStyle=c1;g.rotate(Math.PI/4);g.fillRect(-u*.3,-u*.3,u*.6,u*.6);g.rotate(-Math.PI/4);
-   g.fillStyle=c2;g.beginPath();g.arc(0,0,u*.2,0,7);g.fill();
-   g.strokeStyle=c1;g.lineWidth=5;g.strokeRect(-u/2+10,-u/2+10,u-20,u-20);
-   for(let n=0;n<4;n++){g.fillStyle=c2;g.beginPath();g.arc(Math.cos(n*Math.PI/2+Math.PI/4)*u*.4,Math.sin(n*Math.PI/2+Math.PI/4)*u*.4,u*.05,0,7);g.fill()}
-   g.restore();g.strokeStyle='#b5aa95';g.lineWidth=4;g.strokeRect(i*u,j*u,u,u)}}
- else if(k==='plaster'){g.fillStyle='#d6c4a6';g.fillRect(0,0,S,S);
-  for(let n=0;n<140;n++){const x=R()*S,y=R()*S,r=40+R()*140,gr=g.createRadialGradient(x,y,0,x,y,r),c=R()<.5?'255,250,240':'150,125,95';gr.addColorStop(0,`rgba(${c},.10)`);gr.addColorStop(1,`rgba(${c},0)`);g.fillStyle=gr;g.fillRect(x-r,y-r,2*r,2*r)}}
- else if(k==='nero'){for(let n=0;n<10;n++){g.strokeStyle=`rgba(235,235,235,${.2+R()*.5})`;g.lineWidth=1+R()*3;g.beginPath();g.moveTo(R()*S,0);g.bezierCurveTo(R()*S,S*.3,R()*S,S*.6,R()*S,S);g.stroke()}}
-}
-function tex(kind,rx,ry){
- const K=KIND[kind],S=1024,cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d');
- const tw=S/K.c,th=S/K.r,R=Math.random,sh=(a,v)=>`rgb(${a.map(x=>Math.max(0,Math.min(255,x+v)))})`;
- for(let i=0;i<K.r;i++){const off=K.st?(i%2?tw/2:0):K.wood?R()*tw:0;
-  for(let j=-1;j<=K.c;j++){const x=j*tw+off,y=i*th;
-   g.save();g.beginPath();g.rect(x,y,tw,th);g.clip();
-   g.fillStyle=sh(K.b,(R()-.5)*K.v*2);g.fillRect(x,y,tw,th);
-   if(K.wood){for(let n=0;n<14;n++){g.strokeStyle=`rgba(90,60,30,${.05+R()*.12})`;g.lineWidth=1;g.beginPath();const yy=y+R()*th;g.moveTo(x,yy);g.bezierCurveTo(x+tw*.3,yy+R()*4-2,x+tw*.6,yy+R()*4-2,x+tw,yy);g.stroke()}}
-   if(K.vein){for(let n=0;n<3;n++){g.strokeStyle=`rgba(120,125,130,${.15+R()*.25})`;g.lineWidth=1+R()*2;g.beginPath();g.moveTo(x+R()*tw,y);g.bezierCurveTo(x+R()*tw,y+th*.3,x+R()*tw,y+th*.6,x+R()*tw,y+th);g.stroke()}}
-   if(K.fl){for(let n=0;n<40;n++){g.fillStyle=['#8c7b6a','#b9a58f','#5d6b74','#d8cfc2','#a3523f'][n%5];g.beginPath();g.arc(x+R()*tw,y+R()*th,1.5+R()*3,0,7);g.fill()}}
-   if(K.sp){for(let n=0;n<160;n++){g.fillStyle=`rgba(${R()<.5?255:0},${R()<.5?255:0},${R()<.5?255:0},.05)`;g.fillRect(x+R()*tw,y+R()*th,2,2)}}
-   if(K.band){for(let n=0;n<6;n++){g.fillStyle='rgba(150,120,80,.12)';g.fillRect(x,y+R()*th,tw,2+R()*3)}}
-   if(kind==='zellige'){const gr=g.createLinearGradient(x,y,x+tw,y+th);gr.addColorStop(0,'rgba(255,255,255,.18)');gr.addColorStop(1,'rgba(0,0,0,.14)');g.fillStyle=gr;g.fillRect(x,y,tw,th)}
-   g.restore();g.strokeStyle=K.gr;g.lineWidth=kind==='zellige'?5:3;g.strokeRect(x,y,tw,th)}}
- special(kind,g,S);grain(g,S);const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.anisotropy=8;t.encoding=THREE.sRGBEncoding;
- return new THREE.MeshPhysicalMaterial({map:t,bumpMap:t,bumpScale:1,roughness:K.gl,metalness:.02,clearcoat:K.gl<.3?.7:0,clearcoatRoughness:.08,side:THREE.DoubleSide});
+for(const k in FIN) $('sfin').add(new Option(FIN[k][0], k));
+
+/* ---------- Textures Haute Définition avec Relief (Bump) ---------- */
+function createBumpTile(type, isFloor) {
+  const S = 1024;
+  const cv = document.createElement('canvas'); cv.width = cv.height = S; const g = cv.getContext('2d');
+  const bcv = document.createElement('canvas'); bcv.width = bcv.height = S; const bg = bcv.getContext('2d');
+  
+  bg.fillStyle = '#808080'; bg.fillRect(0,0,S,S);
+
+  if (type === 'slate') {
+    g.fillStyle = '#1c222a'; g.fillRect(0,0,S,S);
+    for(let i=0;i<45000;i++){
+      const v = Math.random()*22|0; g.fillStyle = `rgb(${26+v},${31+v},${38+v})`; g.fillRect(Math.random()*S,Math.random()*S,3,2);
+      const b = (Math.random()*70|0)-35; bg.fillStyle = `rgb(${128+b},${128+b},${128+b})`; bg.fillRect(Math.random()*S,Math.random()*S,4,3);
+    }
+  } else if (type === 'stone') {
+    g.fillStyle = '#64748b'; g.fillRect(0,0,S,S);
+    for(let i=0;i<40000;i++){
+      const v = (Math.random()*28|0)-14; g.fillStyle = `rgb(${100+v},${116+v},${139+v})`; g.fillRect(Math.random()*S,Math.random()*S,3,3);
+      const b = (Math.random()*50|0)-25; bg.fillStyle = `rgb(${128+b},${128+b},${128+b})`; bg.fillRect(Math.random()*S,Math.random()*S,3,3);
+    }
+  } else if (type === 'marble') {
+    g.fillStyle = '#f8fafc'; g.fillRect(0,0,S,S);
+    g.strokeStyle = '#cbd5e1'; g.lineWidth = 6;
+    g.beginPath(); g.moveTo(0,100); g.bezierCurveTo(300,250,700,150,S,500); g.stroke();
+    g.beginPath(); g.moveTo(100,0); g.bezierCurveTo(400,450,600,750,800,S); g.stroke();
+  } else if (type === 'trav') {
+    g.fillStyle = '#d6c5ad'; g.fillRect(0,0,S,S);
+    for(let i=0;i<30000;i++){
+      const v = (Math.random()*24|0)-12; g.fillStyle = `rgb(${214+v},${197+v},${173+v})`; g.fillRect(Math.random()*S,Math.random()*S,4,2);
+    }
+  } else if (type === 'oak') {
+    g.fillStyle = '#b0834c'; g.fillRect(0,0,S,S);
+    for(let i=0;i<24;i++){
+      g.strokeStyle = 'rgba(70,45,20,0.18)'; g.lineWidth = 1.2;
+      g.beginPath(); g.moveTo(0, Math.random()*S); g.bezierCurveTo(300, Math.random()*S, 700, Math.random()*S, S, Math.random()*S); g.stroke();
+    }
+  } else {
+    g.fillStyle = '#e2e8f0'; g.fillRect(0,0,S,S);
+  }
+
+  // Joints grands carreaux 60x120
+  const stepX = S / 2, stepY = S / 4;
+  g.strokeStyle = isFloor ? 'rgba(0,0,0,0.45)' : 'rgba(100,116,139,0.3)'; g.lineWidth = 4;
+  bg.strokeStyle = '#181818'; bg.lineWidth = 6;
+
+  for(let x=0;x<=S;x+=stepX){
+    g.beginPath(); g.moveTo(x,0); g.lineTo(x,S); g.stroke();
+    bg.beginPath(); bg.moveTo(x,0); bg.lineTo(x,S); bg.stroke();
+  }
+  for(let y=0;y<=S;y+=stepY){
+    g.beginPath(); g.moveTo(0,y); g.lineTo(S,y); g.stroke();
+    bg.beginPath(); bg.moveTo(0,y); bg.lineTo(S,y); bg.stroke();
+  }
+
+  const map = new THREE.CanvasTexture(cv); map.wrapS = map.wrapT = THREE.RepeatWrapping;
+  const bump = new THREE.CanvasTexture(bcv); bump.wrapS = bump.wrapT = THREE.RepeatWrapping;
+  return { map, bump };
 }
 
-/* ---------- Scène ---------- */
-const gl=$('gl');let scene,persp,ortho,cam,rend,room,hl;
-const sph={t:.7,p:1.0,r:5};
-const M=(c,r=.4,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
-const CH=M(0xd9dadd,.12,.95),WH=M(0xffffff,.12);
-function initScene(){
- scene=new THREE.Scene();scene.background=new THREE.Color(0x2a2c31);
- persp=new THREE.PerspectiveCamera(42,1,.1,60);ortho=new THREE.OrthographicCamera(-1,1,1,-1,.1,30);cam=persp;
- rend=new THREE.WebGLRenderer({antialias:true});rend.setPixelRatio(Math.min(devicePixelRatio,2));
- rend.shadowMap.enabled=true;rend.shadowMap.type=THREE.PCFSoftShadowMap;rend.outputEncoding=THREE.sRGBEncoding;rend.toneMapping=THREE.ACESFilmicToneMapping;rend.toneMappingExposure=1.05;
- gl.appendChild(rend.domElement);
- scene.add(new THREE.HemisphereLight(0xffffff,0x9a9086,.45));
- const es=new THREE.Scene();es.background=new THREE.Color(0x9a9690);
- [[0,5,0,6,.2,6,0xffffff,4],[5,2,0,.2,3,6,0xfff1dc,3],[-5,2,2,.2,3,5,0xcfe3ff,2],[0,2,5,6,3,.2,0xffffff,1.5]].forEach(a=>{const m=new THREE.Mesh(new THREE.BoxGeometry(a[3],a[4],a[5]),new THREE.MeshBasicMaterial({color:new THREE.Color(a[6]).multiplyScalar(a[7])}));m.position.set(a[0],a[1],a[2]);es.add(m)});
- scene.environment=new THREE.PMREMGenerator(rend).fromScene(es,.03).texture;
- const d=new THREE.DirectionalLight(0xfff1dc,.8);d.position.set(4,6,5);d.castShadow=true;d.shadow.mapSize.set(2048,2048);
- Object.assign(d.shadow.camera,{left:-5,right:5,top:5,bottom:-5});d.shadow.bias=-.0004;scene.add(d);
- const p=new THREE.PointLight(0xffd9a0,.55,8);p.position.set(1.5,2.3,1.2);scene.add(p);scene.userData.pl=p;
- hl=new THREE.BoxHelper(new THREE.Object3D(),0xd2a95c);hl.visible=false;scene.add(hl);
- buildRoom();resize();loop();
-}
-function buildRoom(){
- if(room)scene.remove(room);room=new THREE.Group();
- const fk=$('tf').value,wk=$('tw').value;
- const fl=new THREE.Mesh(new THREE.PlaneGeometry(L,W),tex(fk,L/1.2,W/1.2));fl.rotation.x=-Math.PI/2;fl.position.set(L/2,0,W/2);fl.receiveShadow=true;room.add(fl);
- const bw=new THREE.Mesh(new THREE.PlaneGeometry(L,H),tex(wk,L/1.2,H/1.2));bw.position.set(L/2,H/2,0);bw.receiveShadow=true;room.add(bw);
- const lw=new THREE.Mesh(new THREE.PlaneGeometry(W,H),tex(wk,W/1.2,H/1.2));lw.rotation.y=Math.PI/2;lw.position.set(0,H/2,W/2);lw.receiveShadow=true;room.add(lw);
- const sm=M(0xe9e5dc,.8),box=(a,b,c,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(a,b,c),sm);m.position.set(x,y,z);room.add(m)};
- box(L+.2,H,.1,L/2,H/2,-.05);box(.1,H,W,-.05,H/2,W/2);box(L+.2,.04,.1,L/2,.02,W+.05);box(.1,.04,W,L+.05,.02,W/2);
- const ghm=new THREE.MeshBasicMaterial({color:0xcfd8e6,transparent:true,opacity:.07,side:THREE.DoubleSide,depthWrite:false});
- const f1=new THREE.Mesh(new THREE.PlaneGeometry(L,H),ghm);f1.position.set(L/2,H/2,W);room.add(f1);
- const f2=new THREE.Mesh(new THREE.PlaneGeometry(W,H),ghm);f2.rotation.y=Math.PI/2;f2.position.set(L,H/2,W/2);room.add(f2);
- const col=new THREE.Mesh(new THREE.BoxGeometry(.3,H,.3),M(0xd8d3c8,.9));col.position.set(.15,H/2,.15);col.castShadow=true;room.add(col);
- scene.add(room);scene.userData.pl.position.set(L/2,H-.2,W/2);
- sph.r=Math.max(L,W)*1.9;
-}
-function build(it){
- const g=new THREE.Group(),{w,d}=it;
- const B=(a,b,c)=>new THREE.BoxGeometry(a,b,c),C=(r,h)=>new THREE.CylinderGeometry(r,r,h,24);
- const add=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m};
- const z0=-d/2;
- if(it.type==='vanity'){
-  add(B(w,.5,d),M(FIN[it.fin][1],.4),0,.55,0);
-  add(B(w*.8,.015,.014),M(0x2a2a2a,.3,.8),0,.72,d/2+.006);add(B(w*.8,.015,.014),M(0x2a2a2a,.3,.8),0,.45,d/2+.006);
-  add(B(w+.02,.04,d+.02),M(0xffffff,.1),0,.82,0);
-  const n=w>=1.1?2:1;
-  for(let i=0;i<n;i++){const x=n===2?(i?1:-1)*w/4:0;
-   add(B(Math.min(.46,w/n-.1),.03,.34),M(0xf3f6f8,.05),x,.845,.03);add(C(.03,.012),CH,x,.862,.03);
-   add(C(.015,.2),CH,x,.94,z0+.06);add(C(.01,.14),CH,x,1.03,z0+.12).rotation.x=Math.PI/2}
- }else if(it.type==='shower'){
-  add(B(w,.04,d),M(0xf2f2ef,.25),0,.02,0);add(B(.12,.006,.12),CH,-w/2+.25,.043,0);
-  const gw=w*.9,gm=new THREE.MeshStandardMaterial({color:0xcfe6ee,transparent:true,opacity:.22,roughness:0,metalness:.1});
-  add(B(gw,1.95,.01),gm,w/2-gw/2,1.02,d/2-.01);add(B(gw,.02,.03),CH,w/2-gw/2,2.0,d/2-.01);
-  add(B(.16,.16,.025),CH,0,1.05,z0+.015);add(C(.012,1.0),CH,0,1.55,z0+.03);
-  add(B(.3,.015,.3),CH,0,2.1,z0+.2);add(C(.012,.18),CH,0,2.1,z0+.06).rotation.x=Math.PI/2;
- }else if(it.type==='wc'){
-  add(B(w,1.0,.18),M(0xdcdad4,.7),0,.6,z0+.09);add(B(.22,.14,.01),CH,0,1.0,z0+.185);
-  const bowl=add(new THREE.SphereGeometry(.18,28,18),WH,0,.4,z0+.2);bowl.scale.set(.95,.62,1.4);
-  const seat=add(C(.17,.02),M(0xffffff,.2),0,.455,z0+.2);seat.scale.set(1,1,1.4);
- }else if(it.type==='bath'){
-  add(B(w,.55,d),WH,0,.275,0);add(B(w-.1,.02,d-.1),M(0xbfdcee,.05),0,.55,0);
-  add(C(.015,.22),CH,-w/2+.1,.66,0);add(C(.01,.12),CH,-w/2+.16,.76,0).rotation.z=Math.PI/2;
- }else if(it.type==='mirror'){
-  add(B(w+.06,.76,.012),new THREE.MeshBasicMaterial({color:0xffe6bd}),0,1.5,.006);
-  add(B(w,.7,.03),M(0x30333a,.4),0,1.5,.026);add(B(w-.04,.66,.006),M(0xe6edf0,.03,.9),0,1.5,.044);
- }else if(it.type==='wc2'){
-  add(B(w*.8,.43,.2),WH,0,.215,z0+.1);add(B(w,.4,.2),WH,0,.63,z0+.1);add(B(.12,.02,.05),CH,0,.84,z0+.1);
-  const bw2=add(new THREE.SphereGeometry(.2,28,18),WH,0,.2,z0+.36);bw2.scale.set(.9,.9,1.55);
-  const st2=add(C(.17,.02),M(0xffffff,.2),0,.42,z0+.36);st2.scale.set(1,1,1.5);
- }else if(it.type==='door'){
-  add(B(w+.1,2.09,.06),M(0xf1efe9,.5),0,1.045,0);add(B(w,2.04,.03),M(0xb98e5b,.55),0,1.02,.045);
-  add(B(w*.7,.75,.006),M(0xa57c4a,.6),0,1.5,.063);add(B(w*.7,.75,.006),M(0xa57c4a,.6),0,.55,.063);
-  add(C(.01,.1),CH,w/2-.08,1.02,.09).rotation.z=Math.PI/2;
- }else if(it.type==='window'){
-  const wh=1.2,y=it.sill,fr=M(0xf5f5f3,.4);
-  add(B(w+.08,wh+.08,.08),fr,0,y+wh/2,0);
-  add(B(w-.04,wh-.04,.02),new THREE.MeshStandardMaterial({color:0xdff3ff,transparent:true,opacity:.6,roughness:0,metalness:.2,emissive:0xbfe3ff,emissiveIntensity:.8}),0,y+wh/2,.04);
-  add(B(.03,wh,.05),fr,0,y+wh/2,.045);add(B(w,.03,.05),fr,0,y+wh/2,.045);add(B(w+.16,.03,.14),fr,0,y-.03,.03);
- }else if(it.type==='rad'){
-  for(let i=0;i<9;i++)add(B(w,.025,.035),M(0xf2f2f0,.4),0,.35+i*.15,.03);
-  add(B(.03,1.45,.04),M(0xf2f2f0,.4),-w/2+.02,1.05,.03);add(B(.03,1.45,.04),M(0xf2f2f0,.4),w/2-.02,1.05,.03);
- }
- return g;
-}
-function mk(it){if(it.g)scene.remove(it.g);it.g=build(it);scene.add(it.g);place(it)}
-function place(it){it.g.position.set(it.x,0,it.z);it.g.rotation.y=it.rot}
-function q(it){return((Math.round(it.rot/(Math.PI/2))%4)+4)%4}
-function contact(it){
- const k=q(it),sw=k%2===1,hx=(sw?it.d:it.w)/2,hz=(sw?it.w:it.d)/2;
- it.x=Math.max(hx,Math.min(L-hx,it.x));it.z=Math.max(hz,Math.min(W-hz,it.z));
- if(k===0)it.z=hz;else if(k===1)it.x=hx;else if(k===3)it.x=L-hx;else it.z=W-hz;
-}
-function snap(it){
- const a=[it.z,it.x,L-it.x,W-it.z],m=Math.min(...a);
- it.rot=[0,Math.PI/2,-Math.PI/2,Math.PI][a.indexOf(m)];contact(it);
-}
-function addItem(type){
- const D=DEF[type],it={id:uid++,type,name:D.n,w:D.w,d:D.d,fin:D.fin||'white',sill:1,x:L/2+((items.length%3)-1)*.6,z:.3,rot:0};
- contact(it);mk(it);items.push(it);select(it);refresh();
-}
-function select(it){
- sel=it;const b=$('selbox');b.style.display=it?'flex':'none';
- if(it){$('selname').textContent=it.name;$('sw').value=Math.round(it.w*100);$('sd').value=Math.round(it.d*100);$('sfin').value=it.fin;$('finrow').style.display=it.type==='vanity'?'block':'none';$('hrow').style.display=it.type==='window'?'block':'none';$('sh').value=Math.round(it.sill*100)}
- hl.visible=!!it;
-}
-function del(){if(!sel)return;scene.remove(sel.g);items.splice(items.indexOf(sel),1);select(null);refresh()}
+/* ---------- Three.js Scène ---------- */
+const gl = $('gl');
+let scene, persp, ortho, cam, rend, room, hl, colMesh;
+const sph = { t: 0.7, p: 0.95, r: 5 };
 
-/* ---------- Plomberie ---------- */
-const FEED={cold:[.1,.1],hot:[.1,.15],dr:[.1,.2]};
-function portsOf(it){
- const d=it.d,z=-d/2+.05,t=it.type,p={};
- if(t==='vanity'){p.cold=[-.08,z];p.hot=[.08,z];p.dr=[0,z+.02]}
- else if(t==='shower'){p.cold=[-.08,z];p.hot=[.08,z];p.dr=[-it.w/2+.25,0]}
- else if(t==='wc'){p.cold=[0,z+.05];p.dr=[0,z+.12]}
- else if(t==='bath'){p.cold=[-it.w/2+.1,-.08];p.hot=[-it.w/2+.1,.08];p.dr=[-it.w/2+.1,0]}
- else if(t==='wc2'){p.cold=[.1,z];p.dr=[0,z+.08]}
- else if(t==='rad'){p.hot=[-it.w/2+.02,0]}
- const c=Math.cos(it.rot),s=Math.sin(it.rot),o={};
- for(const k in p)o[k]=[it.x+p[k][0]*c+p[k][1]*s,it.z-p[k][0]*s+p[k][1]*c];
- return o;
-}
-function route(k,P){const F=FEED[k];return[F,[P[0],F[1]],P]}
-function rlen(r){return Math.abs(r[1][0]-r[0][0])+Math.abs(r[2][1]-r[1][1])}
-function refresh(){
- if(canSave)try{localStorage.setItem('sdb',JSON.stringify({L,W,H,tf:$('tf').value,tw:$('tw').value,items:items.map(({g,...r})=>r)}))}catch(e){}
- const ul=$('billList');ul.innerHTML='';
- const ar=(a,b)=>{const li=document.createElement('li');li.innerHTML=`<span>${a}</span><b>${b}</b>`;ul.appendChild(li)};
- const op=items.reduce((s,i)=>s+(i.type==='door'?i.w*2.04:i.type==='window'?i.w*1.2:0),0);
- ar('Surface au sol',(L*W).toFixed(1)+' m²');ar('Carrelage sol (+10 % de chute)',(L*W*1.1).toFixed(1)+' m²');
- ar('Revêtement murs (+10 % de chute)',(Math.max(0,2*(L+W)*H-op)*1.1).toFixed(1)+' m²');
- if(!items.length){ul.insertAdjacentHTML('beforeend','<li><span class="note">Ajoutez des équipements à l’étape 2 pour compléter le récapitulatif.</span></li>')}
- else{
-  let c=0,h=0,d40=0,d100=0;
-  items.forEach(it=>{const P=portsOf(it);
-   if(P.cold)c+=rlen(route('cold',P.cold));if(P.hot)h+=rlen(route('hot',P.hot));
-   if(P.dr){const l=rlen(route('dr',P.dr));if(/^wc/.test(it.type))d100+=l;else d40+=l}});
-  const f=v=>v>0?(v*1.15+1.5).toFixed(1)+' m':null,row=(a,b)=>{if(b){const li=document.createElement('li');li.innerHTML=`<span>${a}</span><b>${b}</b>`;ul.appendChild(li)}};
-  if(PRO){row('Multicouche eau froide',f(c));row('Multicouche eau chaude',f(h));row('PVC évacuation Ø40',f(d40));row('PVC évacuation Ø100 (WC)',f(d100))}
-  const n=t=>items.filter(i=>i.type===t).length;
-  const taps=items.filter(i=>i.type==='vanity').reduce((a,i)=>a+(i.w>=1.1?2:1),0);
-  row('Mitigeurs lavabo',taps?taps+' u':null);
-  row('Receveurs de douche',n('shower')?n('shower')+' u':null);row('Bâtis-supports WC',n('wc')?n('wc')+' u':null);
-  row('Baignoires',n('bath')?n('bath')+' u':null);row('WC à poser (sans bâti)',n('wc2')?n('wc2')+' u':null);row('Blocs-portes',n('door')?n('door')+' u':null);row('Fenêtres',n('window')?n('window')+' u':null);row('Alim. 230 V miroir LED',n('mirror')?n('mirror')+' pt':null);
- }
- if(sel&&hl.visible)hl.setFromObject(sel.g);
- if(view==='plan')drawPlan();
+const M = (c, r=0.4, m=0) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: m });
+const CH = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.95, roughness: 0.08 });
+const WH = M(0xffffff, 0.1);
+
+function initScene() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x131f28);
+
+  persp = new THREE.PerspectiveCamera(44, 1, 0.1, 60);
+  ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 40);
+  cam = persp;
+
+  rend = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: "high-performance" });
+  rend.setPixelRatio(Math.min(devicePixelRatio, 2));
+  rend.shadowMap.enabled = true;
+  rend.shadowMap.type = THREE.PCFSoftShadowMap;
+  gl.appendChild(rend.domElement);
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x556677, 0.8));
+
+  const mainLight = new THREE.DirectionalLight(0xfff7ed, 0.95);
+  mainLight.position.set(4, 7, 3);
+  mainLight.castShadow = true;
+  mainLight.shadow.mapSize.set(1024, 1024);
+  scene.add(mainLight);
+
+  const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.4);
+  fillLight.position.set(-4, 5, -2);
+  scene.add(fillLight);
+
+  hl = new THREE.BoxHelper(new THREE.Object3D(), 0x33555F);
+  hl.visible = false;
+  scene.add(hl);
+
+  buildRoom();
+  resize();
+  loop();
 }
 
-/* ---------- Plan technique ---------- */
-const pc=$('plan');
-function drawPlan(){
- const dpr=Math.min(devicePixelRatio,2),cw=pc.clientWidth,ch=pc.clientHeight;pc.width=cw*dpr;pc.height=ch*dpr;
- const g=pc.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);
- const s=Math.min((cw-150)/L,(ch-170)/W),ox=(cw-L*s)/2+10,oy=(ch-W*s)/2+10,X=x=>ox+x*s,Z=z=>oy+z*s;
- g.fillStyle='#12263f';g.fillRect(0,0,cw,ch);
- g.strokeStyle='rgba(140,180,230,.13)';g.lineWidth=1;
- for(let x=0;x<=L+1e-6;x+=.1){g.beginPath();g.moveTo(X(x),Z(0));g.lineTo(X(x),Z(W));g.stroke()}
- for(let z=0;z<=W+1e-6;z+=.1){g.beginPath();g.moveTo(X(0),Z(z));g.lineTo(X(L),Z(z));g.stroke()}
- g.strokeStyle='#e8f0fb';g.lineWidth=5;g.strokeRect(X(0),Z(0),L*s,W*s);
- g.fillStyle='rgba(232,240,251,.25)';g.fillRect(X(0),Z(0),.3*s,.3*s);g.lineWidth=1.5;g.strokeRect(X(0),Z(0),.3*s,.3*s);
- g.font='11px sans-serif';g.fillStyle='#e8f0fb';g.fillText('Gaine',X(.02),Z(.45));
- items.forEach(it=>{g.save();g.translate(X(it.x),Z(it.z));g.rotate(it.rot);
-  g.fillStyle='rgba(255,255,255,.07)';g.strokeStyle=COL[it.type];g.lineWidth=2;g.fillRect(-it.w/2*s,-it.d/2*s,it.w*s,it.d*s);g.strokeRect(-it.w/2*s,-it.d/2*s,it.w*s,it.d*s);
-  if(it.type==='door'){g.lineWidth=1.5;g.setLineDash([4,4]);g.beginPath();g.moveTo(-it.w/2*s,0);g.lineTo(-it.w/2*s,it.w*s);g.moveTo(it.w/2*s,0);g.arc(-it.w/2*s,0,it.w*s,0,Math.PI/2);g.stroke();g.setLineDash([])}
-  if(it.type==='window'){g.lineWidth=1.5;g.beginPath();g.moveTo(-it.w/2*s,0);g.lineTo(it.w/2*s,0);g.stroke()}
-  g.restore();g.fillStyle='#e8f0fb';g.font='11px sans-serif';g.textAlign='center';g.fillText(`${it.name} ${Math.round(it.w*100)}×${Math.round(it.d*100)}`,X(it.x),Z(it.z)+4);
-  g.fillStyle='#8fb0d6';g.fillText(`axe x ${Math.round(it.x*100)} · z ${Math.round(it.z*100)} cm`,X(it.x),Z(it.z)+17);g.textAlign='left'});
- const line=(pts,col,w,dash)=>{g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.beginPath();pts.forEach((p,i)=>i?g.lineTo(X(p[0]),Z(p[1])):g.moveTo(X(p[0]),Z(p[1])));g.stroke();g.setLineDash([])};
- items.forEach(it=>{const P=portsOf(it);
-  if(P.dr)line(route('dr',P.dr),'#b8bec6',/^wc/.test(it.type)?5:3,[8,5]);
-  if(P.cold)line(route('cold',P.cold),'#4aa8ff',2.5);
-  if(P.hot)line(route('hot',P.hot),'#ff6b5b',2.5);
-  for(const k in P){g.fillStyle=k==='cold'?'#4aa8ff':k==='hot'?'#ff6b5b':'#b8bec6';g.beginPath();g.arc(X(P[k][0]),Z(P[k][1]),3.5,0,7);g.fill()}});
- g.strokeStyle='#e8f0fb';g.fillStyle='#e8f0fb';g.lineWidth=1;g.font='12px sans-serif';
- g.beginPath();g.moveTo(X(0),Z(0)-18);g.lineTo(X(L),Z(0)-18);g.stroke();g.textAlign='center';g.fillText(Math.round(L*100)+' cm',X(L/2),Z(0)-24);
- g.beginPath();g.moveTo(X(0)-18,Z(0));g.lineTo(X(0)-18,Z(W));g.stroke();g.save();g.translate(X(0)-24,Z(W/2));g.rotate(-Math.PI/2);g.fillText(Math.round(W*100)+' cm',0,0);g.restore();
- g.textAlign='left';g.font='bold 14px sans-serif';g.fillText('Plan technique plomberie',14,22);
- g.font='12px sans-serif';[['#4aa8ff','Eau froide'],['#ff6b5b','Eau chaude'],['#b8bec6','Évacuation (gros trait : Ø100 WC)']].forEach((l,i)=>{g.fillStyle=l[0];g.fillRect(14,ch-70+i*18,24,3);g.fillStyle='#e8f0fb';g.fillText(l[1],46,ch-65+i*18)});
+function getColCoords() {
+  if (colCorner === 0) return [0.175, 0.175];
+  if (colCorner === 1) return [L - 0.175, 0.175];
+  if (colCorner === 2) return [0.175, W - 0.175];
+  return [L - 0.175, W - 0.175];
 }
 
-/* ---------- Caméra et interactions ---------- */
-function setView(v){
- view=v;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
- gl.style.display=v==='plan'?'none':'block';pc.style.display=v==='plan'?'block':'none';
- $('hint').style.display=v==='plan'?'none':'block';
- cam=v==='top'?ortho:persp;resize();if(v==='plan')drawPlan();
+function buildRoom() {
+  if (room) scene.remove(room);
+  room = new THREE.Group();
+
+  const floorTex = createBumpTile($('tf').value, true);
+  floorTex.map.repeat.set(L / 1.2, W / 1.2);
+  floorTex.bump.repeat.set(L / 1.2, W / 1.2);
+
+  const flMat = new THREE.MeshStandardMaterial({ map: floorTex.map, bumpMap: floorTex.bump, bumpScale: 0.035, roughness: 0.35 });
+  const fl = new THREE.Mesh(new THREE.PlaneGeometry(L, W), flMat);
+  fl.rotation.x = -Math.PI / 2;
+  fl.position.set(L/2, 0, W/2);
+  fl.receiveShadow = true;
+  room.add(fl);
+
+  const wallTex = createBumpTile($('tw').value, false);
+  wallTex.map.repeat.set(L / 1.2, H / 1.2);
+  wallTex.bump.repeat.set(L / 1.2, H / 1.2);
+  const wMat = new THREE.MeshStandardMaterial({ map: wallTex.map, bumpMap: wallTex.bump, bumpScale: 0.02, roughness: 0.45, side: THREE.DoubleSide });
+
+  // Mur de fond
+  const bw = new THREE.Mesh(new THREE.PlaneGeometry(L, H), wMat);
+  bw.position.set(L/2, H/2, 0);
+  bw.receiveShadow = true;
+  room.add(bw);
+
+  // Mur de gauche
+  const lw = new THREE.Mesh(new THREE.PlaneGeometry(W, H), wMat);
+  lw.rotation.y = Math.PI / 2;
+  lw.position.set(0, H/2, W/2);
+  lw.receiveShadow = true;
+  room.add(lw);
+
+  // Plinthes
+  const plMat = M(0x233b42, 0.4);
+  const pb = new THREE.Mesh(new THREE.BoxGeometry(L, 0.08, 0.02), plMat);
+  pb.position.set(L/2, 0.04, 0.01);
+  room.add(pb);
+  const pl = new THREE.Mesh(new THREE.BoxGeometry(W, 0.08, 0.02), plMat);
+  pl.rotation.y = Math.PI / 2;
+  pl.position.set(0.01, 0.04, W/2);
+  room.add(pl);
+
+  // Colonne technique dynamique selon choix utilisateur
+  const [cx, cz] = getColCoords();
+  colMesh = new THREE.Mesh(new THREE.BoxGeometry(0.35, H, 0.35), M(0x33555F, 0.6));
+  colMesh.position.set(cx, H/2, cz);
+  colMesh.castShadow = true;
+  room.add(colMesh);
+
+  scene.add(room);
+  sph.r = Math.max(L, W) * 1.85;
 }
-function resize(){
- const w=gl.clientWidth||1,h=gl.clientHeight||1;rend.setSize(w,h);const a=w/h;persp.aspect=a;persp.updateProjectionMatrix();
- const hh=Math.max(W/2+.5,(L/2+.5)/a);ortho.left=-hh*a;ortho.right=hh*a;ortho.top=hh;ortho.bottom=-hh;ortho.updateProjectionMatrix();
- if(view==='plan')drawPlan();
+
+/* ---------- Modélisation Sanitaires ---------- */
+function buildMesh(it) {
+  const g = new THREE.Group();
+  const { w, d } = it;
+  const B = (a, b, c) => new THREE.BoxGeometry(a, b, c);
+  const C = (r, h) => new THREE.CylinderGeometry(r, r, h, 20);
+  const add = (geo, mat, x, y, z) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.castShadow = true; m.receiveShadow = true;
+    g.add(m);
+    return m;
+  };
+  const z0 = -d / 2;
+
+  if (it.type === 'shower') {
+    const gw = it.gw || Math.min(1.0, w);
+    const gh = 2.0;
+    // Receveur extra-plat
+    add(B(w, 0.04, d), M(0xfdfdfd, 0.2), 0, 0.02, 0);
+    // Bonde chromée carrée
+    add(B(0.12, 0.005, 0.12), CH, -w/2 + 0.2, 0.041, 0);
+    // Paroi vitrée sécurit
+    const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.95, opacity: 1, transparent: true, roughness: 0.02, ior: 1.5 });
+    add(B(gw, gh, 0.012), glassMat, -w/2 + gw/2, gh/2 + 0.04, d/2 - 0.015);
+    // Profilé mural
+    add(B(0.025, gh, 0.025), CH, -w/2 + 0.012, gh/2 + 0.04, d/2 - 0.015);
+    // Barre de stabilisation
+    const bar = add(C(0.01, d), CH, -w/2 + gw - 0.05, gh + 0.02, 0); bar.rotation.x = Math.PI / 2;
+
+    // Mitigeur thermostatique
+    const mix = add(C(0.025, 0.28), CH, -w/2 + 0.08, 1.1, 0); mix.rotation.z = Math.PI / 2;
+    const r1 = add(C(0.035, 0.04), CH, -w/2 + 0.02, 1.1, -0.075); r1.rotation.y = Math.PI / 2;
+    const r2 = add(C(0.035, 0.04), CH, -w/2 + 0.02, 1.1, 0.075); r2.rotation.y = Math.PI / 2;
+    // Colonne montante & ciel de pluie
+    add(C(0.012, 1.1), CH, -w/2 + 0.08, 1.65, 0);
+    add(B(0.3, 0.02, 0.3), CH, -w/2 + 0.25, 2.2, 0);
+    const arm = add(C(0.012, 0.22), CH, -w/2 + 0.16, 2.2, 0); arm.rotation.z = Math.PI / 2;
+    // Douchette
+    add(C(0.012, 0.2), CH, -w/2 + 0.1, 1.3, 0.14);
+
+  } else if (it.type === 'vanity') {
+    const isDouble = (it.model === '2') || (it.model === 'auto' && w >= 1.15);
+    const finColor = (FIN[it.fin] && FIN[it.fin][1]) || 0xb48a58;
+    // Caisson suspendu
+    add(B(w, 0.55, d), M(finColor, 0.45), 0, 0.55, 0);
+    // Poignées noires profilées
+    const hMat = M(0x222222, 0.85, 0.2);
+    add(B(w * 0.7, 0.02, 0.02), hMat, 0, 0.68, d/2 + 0.01);
+    add(B(w * 0.7, 0.02, 0.02), hMat, 0, 0.42, d/2 + 0.01);
+    // Plan céramique
+    add(B(w + 0.02, 0.04, d + 0.02), WH, 0, 0.85, 0);
+
+    const buildTap = (posX) => {
+      add(B(Math.min(0.55, w/(isDouble?2:1) - 0.08), 0.12, d * 0.7), WH, posX, 0.8, 0.03);
+      add(C(0.035, 0.01), CH, posX, 0.75, 0.03);
+      add(C(0.02, 0.18), CH, posX, 0.94, z0 + 0.08);
+      const spout = add(C(0.012, 0.12), CH, posX, 1.01, z0 + 0.14); spout.rotation.x = Math.PI / 2.8;
+      add(B(0.02, 0.01, 0.08), CH, posX, 1.03, z0 + 0.08);
+    };
+
+    if (isDouble) { buildTap(-w/4); buildTap(w/4); } else { buildTap(0); }
+
+  } else if (it.type === 'wc') {
+    add(B(w, 1.15, 0.22), M(0x33555F, 0.5), 0, 0.58, z0 + 0.11);
+    add(B(0.22, 0.14, 0.01), CH, 0, 0.95, z0 + 0.225);
+    const bowl = add(C(0.18, 0.35), WH, 0, 0.38, z0 + 0.42); bowl.rotation.x = -Math.PI / 2;
+    add(B(0.36, 0.02, 0.44), WH, 0, 0.42, z0 + 0.42);
+
+  } else if (it.type === 'wc2') {
+    add(B(w * 0.8, 0.43, 0.2), WH, 0, 0.215, z0 + 0.1);
+    add(B(w, 0.4, 0.2), WH, 0, 0.63, z0 + 0.1);
+    add(B(0.12, 0.02, 0.05), CH, 0, 0.84, z0 + 0.1);
+    const b2 = add(C(0.18, 0.38), WH, 0, 0.25, z0 + 0.38); b2.rotation.x = -Math.PI / 2;
+    add(B(0.36, 0.02, 0.44), WH, 0, 0.43, z0 + 0.38);
+
+  } else if (it.type === 'bath') {
+    add(B(w, 0.55, d), WH, 0, 0.275, 0);
+    add(B(w - 0.1, 0.02, d - 0.1), M(0xbfdcee, 0.05), 0, 0.55, 0);
+    add(C(0.015, 0.22), CH, -w/2 + 0.1, 0.66, 0);
+    const sp = add(C(0.01, 0.12), CH, -w/2 + 0.16, 0.76, 0); sp.rotation.z = Math.PI / 2;
+
+  } else if (it.type === 'mirror') {
+    add(B(w, 0.75, 0.02), M(0xf1f5f9, 0.0, 0.98), 0, 1.48, 0.01);
+    add(B(w + 0.04, 0.79, 0.008), new THREE.MeshBasicMaterial({ color: 0xffedd5 }), 0, 1.48, 0.004);
+
+  } else if (it.type === 'door') {
+    add(B(w + 0.1, 2.1, 0.06), M(0x33555F, 0.5), 0, 1.05, 0);
+    add(B(w, 2.04, 0.03), M(0xb98e5b, 0.55), 0, 1.02, 0.04);
+    add(C(0.01, 0.1), CH, w/2 - 0.08, 1.02, 0.09).rotation.z = Math.PI / 2;
+
+  } else if (it.type === 'window') {
+    const wh = 1.2, y = 1.0, fr = M(0xf5f5f3, 0.4);
+    add(B(w + 0.08, wh + 0.08, 0.08), fr, 0, y + wh/2, 0);
+    add(B(w - 0.04, wh - 0.04, 0.02), new THREE.MeshStandardMaterial({ color: 0xdff3ff, transparent: true, opacity: 0.6, roughness: 0 }), 0, y + wh/2, 0.04);
+    add(B(w + 0.16, 0.03, 0.14), fr, 0, y - 0.02, 0.03);
+
+  } else if (it.type === 'rad') {
+    for (let i = 0; i < 9; i++) add(B(w, 0.025, 0.035), M(0xf2f2f0, 0.3), 0, 0.35 + i * 0.15, 0.03);
+    add(B(0.03, 1.45, 0.04), M(0xf2f2f0, 0.3), -w/2 + 0.02, 1.05, 0.03);
+    add(B(0.03, 1.45, 0.04), M(0xf2f2f0, 0.3), w/2 - 0.02, 1.05, 0.03);
+  }
+
+  return g;
 }
-function placeCam(){
- if(view==='top'){ortho.position.set(L/2,12,W/2);ortho.up.set(0,0,-1);ortho.lookAt(L/2,0,W/2)}
- else{const t=new THREE.Vector3(L/2,.8,W/2);persp.position.set(t.x+sph.r*Math.sin(sph.p)*Math.sin(sph.t),t.y+sph.r*Math.cos(sph.p),t.z+sph.r*Math.sin(sph.p)*Math.cos(sph.t));persp.up.set(0,1,0);persp.lookAt(t)}
+
+function mk(it) {
+  if (it.g) scene.remove(it.g);
+  it.g = buildMesh(it);
+  scene.add(it.g);
+  place(it);
 }
-function loop(){requestAnimationFrame(loop);if(view==='plan')return;placeCam();if(sel&&hl.visible)hl.setFromObject(sel.g);rend.render(scene,cam)}
-const ray=new THREE.Raycaster(),fp=new THREE.Plane(new THREE.Vector3(0,1,0),0),v2=new THREE.Vector2();
-function ndc(e){const r=gl.getBoundingClientRect();v2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(v2,cam)}
-function floorPt(){const p=new THREE.Vector3();return ray.ray.intersectPlane(fp,p)?p:null}
-gl.addEventListener('pointerdown',e=>{
- ndc(e);const hit=step===2?ray.intersectObjects(items.map(i=>i.g),true):[];
- if(hit.length){let o=hit[0].object;while(o.parent!==scene)o=o.parent;const it=items.find(i=>i.g===o);select(it);const p=floorPt();drag={it,dx:p?it.x-p.x:0,dz:p?it.z-p.z:0}}
- else{select(null);if(view==='3d')orb={x:e.clientX,y:e.clientY}}
- gl.setPointerCapture(e.pointerId);
+
+function place(it) {
+  it.g.position.set(it.x, 0, it.z);
+  it.g.rotation.y = it.rot;
+}
+
+function q(it) {
+  return ((Math.round(it.rot / (Math.PI / 2)) % 4) + 4) % 4;
+}
+
+function contact(it) {
+  const k = q(it), sw = (k % 2 === 1);
+  const hx = (sw ? it.d : it.w) / 2;
+  const hz = (sw ? it.w : it.d) / 2;
+  it.x = Math.max(hx, Math.min(L - hx, it.x));
+  it.z = Math.max(hz, Math.min(W - hz, it.z));
+  if (k === 0) it.z = hz;
+  else if (k === 1) it.x = hx;
+  else if (k === 3) it.x = L - hx;
+  else it.z = W - hz;
+}
+
+// Empêchement logique : interdire de superposer une douche sur une fenêtre ou porte
+function isValidPosition(candidate) {
+  if (candidate.type !== 'shower' && candidate.type !== 'bath') return true;
+  for (let other of items) {
+    if (other === candidate) continue;
+    if (other.type === 'door' || other.type === 'window') {
+      const dist = Math.hypot(candidate.x - other.x, candidate.z - other.z);
+      if (dist < (candidate.w/2 + other.w/2 + 0.2)) {
+        return false; // Conflit direct avec ouverture !
+      }
+    }
+  }
+  return true;
+}
+
+function snap(it) {
+  const a = [it.z, it.x, L - it.x, W - it.z];
+  const m = Math.min(...a);
+  const originalRot = it.rot;
+  const originalX = it.x;
+  const originalZ = it.z;
+
+  it.rot = [0, Math.PI / 2, -Math.PI / 2, Math.PI][a.indexOf(m)];
+  contact(it);
+
+  // Règle de cohérence : si la douche touche une fenêtre, repousser
+  if (!isValidPosition(it)) {
+    // Si conflit, décaler le long du mur
+    if (it.rot === 0 || it.rot === Math.PI) it.x = (it.x > L/2) ? it.w/2 + 0.1 : L - it.w/2 - 0.1;
+    else it.z = (it.z > W/2) ? it.d/2 + 0.1 : W - it.d/2 - 0.1;
+    contact(it);
+  }
+}
+
+function select(it) {
+  sel = it;
+  const box = $('selbox');
+  box.style.display = it ? 'flex' : 'none';
+  if (it) {
+    $('selname').textContent = it.name;
+    $('sw').value = Math.round(it.w * 100);
+    $('sd').value = Math.round(it.d * 100);
+    $('sfin').value = it.fin || 'oak';
+    $('finrow').style.display = (it.type === 'vanity') ? 'block' : 'none';
+    hl.setFromObject(it.g);
+    hl.visible = true;
+  } else {
+    hl.visible = false;
+  }
+}
+
+function del() {
+  if (!sel) return;
+  scene.remove(sel.g);
+  items.splice(items.indexOf(sel), 1);
+  select(null);
+  refresh();
+}
+
+function addItem(type, customParams={}) {
+  const it = {
+    id: uid++,
+    type,
+    name: customParams.name || type,
+    w: customParams.w || 0.8,
+    d: customParams.d || 0.5,
+    gw: customParams.gw || 1.0,
+    fin: customParams.fin || 'oak',
+    model: customParams.model || 'auto',
+    x: L/2 + ((items.length % 3) - 1) * 0.45,
+    z: 0.5,
+    rot: 0
+  };
+  contact(it);
+  mk(it);
+  items.push(it);
+  select(it);
+  refresh();
+}
+
+/* ---------- Calcul Plomberie & Métré ---------- */
+function portsOf(it) {
+  const d = it.d, z = -d/2 + 0.05, t = it.type, p = {};
+  if (t === 'vanity') { p.cold = [-0.08, z]; p.hot = [0.08, z]; p.dr = [0, z + 0.02]; }
+  else if (t === 'shower') { p.cold = [-0.08, z]; p.hot = [0.08, z]; p.dr = [-it.w/2 + 0.2, 0]; }
+  else if (t === 'wc') { p.cold = [0, z + 0.05]; p.dr = [0, z + 0.12]; }
+  else if (t === 'bath') { p.cold = [-it.w/2 + 0.1, -0.08]; p.hot = [-it.w/2 + 0.1, 0.08]; p.dr = [-it.w/2 + 0.1, 0]; }
+  else if (t === 'wc2') { p.cold = [0.1, z]; p.dr = [0, z + 0.08]; }
+  else if (t === 'rad') { p.hot = [-it.w/2 + 0.02, 0]; }
+
+  const c = Math.cos(it.rot), s = Math.sin(it.rot), o = {};
+  for (const k in p) o[k] = [it.x + p[k][0] * c + p[k][1] * s, it.z - p[k][0] * s + p[k][1] * c];
+  return o;
+}
+
+function route(k, P) {
+  const [cx, cz] = getColCoords();
+  return [[cx, cz], [P[0], cz], P];
+}
+
+function rlen(r) {
+  return Math.abs(r[1][0] - r[0][0]) + Math.abs(r[2][1] - r[1][1]);
+}
+
+function refresh() {
+  const ul = $('billList');
+  ul.innerHTML = '';
+  const ar = (label, qty) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${label}</span><b>${qty}</b>`;
+    ul.appendChild(li);
+  };
+
+  ar('Carrelage sol (+10%)', `${(L * W * 1.1).toFixed(1)} m²`);
+  ar('Faïence murale (+10%)', `${(Math.max(0, 2 * (L + W) * H) * 1.1).toFixed(1)} m²`);
+
+  if (!items.length) {
+    ul.insertAdjacentHTML('beforeend', '<li style="color:#64748b;">Placez vos sanitaires pour voir les fournitures.</li>');
+  } else {
+    let c = 0, h = 0, d40 = 0, d100 = 0;
+    let showers = 0, vanities = 0, doubleVanities = 0, wcs = 0, mirrors = 0, rads = 0;
+
+    items.forEach(it => {
+      const P = portsOf(it);
+      if (P.cold) c += rlen(route('cold', P.cold));
+      if (P.hot) h += rlen(route('hot', P.hot));
+      if (P.dr) {
+        const l = rlen(route('dr', P.dr));
+        if (/^wc/.test(it.type)) d100 += l; else d40 += l;
+      }
+      if (it.type === 'shower') showers++;
+      if (it.type === 'vanity') { vanities++; if (it.w >= 1.15) doubleVanities++; }
+      if (/^wc/.test(it.type)) wcs++;
+      if (it.type === 'mirror') mirrors++;
+      if (it.type === 'rad') rads++;
+    });
+
+    const f = v => v > 0 ? ((v * 1.15) + 1.5).toFixed(1) + ' m' : null;
+
+    if (c > 0) ar('Multicouche Eau Froide gainé', f(c));
+    if (h > 0) ar('Multicouche Eau Chaude gainé', f(h));
+    if (d40 > 0) ar('Tube PVC évacuation Ø40', f(d40));
+    if (d100 > 0) ar('Tube PVC évacuation Ø100 (WC)', f(d100));
+
+    if (showers > 0) {
+      ar('Platine applique mitigeur encastré', `${showers} kit(s)`);
+      ar('Pomme de tête pluie 30×30 cm', `${showers} u`);
+      ar('Mitigeur thermostatique douche', `${showers} u`);
+      ar('Bonde extra-plate grand débit', `${showers} u`);
+    }
+
+    if (vanities > 0) {
+      const totalTaps = (vanities - doubleVanities) + doubleVanities * 2;
+      ar('Mitigeur lavabo monocommande', `${totalTaps} u`);
+      ar('Robinets d’arrêt 3/8" avec filtre', `${totalTaps * 2} u`);
+      ar('Siphon et bonde clic-clac', `${totalTaps} u`);
+    }
+
+    if (mirrors > 0) ar('Alimentation 230V miroir LED', `${mirrors} pt`);
+    if (rads > 0) ar('Raccordement Sèche-serviettes', `${rads} u`);
+  }
+
+  if (sel && hl.visible) hl.setFromObject(sel.g);
+  if (view === 'plan') drawPlan();
+}
+
+/* ---------- Plan Technique 2D Tuyaux ---------- */
+const pc = $('plan');
+function drawPlan() {
+  const dpr = Math.min(devicePixelRatio, 2), cw = pc.clientWidth, ch = pc.clientHeight;
+  pc.width = cw * dpr; pc.height = ch * dpr;
+  const g = pc.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const s = Math.min((cw - 120) / L, (ch - 140) / W);
+  const ox = (cw - L * s) / 2 + 10, oy = (ch - W * s) / 2 + 10;
+  const X = x => ox + x * s, Z = z => oy + z * s;
+
+  g.fillStyle = '#0d1b2a'; g.fillRect(0, 0, cw, ch);
+
+  // Grille
+  g.strokeStyle = 'rgba(51, 85, 95, 0.4)'; g.lineWidth = 1;
+  for (let x = 0; x <= L + 1e-5; x += 0.2) { g.beginPath(); g.moveTo(X(x), Z(0)); g.lineTo(X(x), Z(W)); g.stroke(); }
+  for (let z = 0; z <= W + 1e-5; z += 0.2) { g.beginPath(); g.moveTo(X(0), Z(z)); g.lineTo(X(L), Z(z)); g.stroke(); }
+
+  // Murs
+  g.strokeStyle = '#ECE3BD'; g.lineWidth = 5; g.strokeRect(X(0), Z(0), L * s, W * s);
+
+  // Gaine technique / Chute
+  const [cx, cz] = getColCoords();
+  g.fillStyle = 'rgba(210, 169, 92, 0.4)';
+  g.fillRect(X(cx - 0.175), Z(cz - 0.175), 0.35 * s, 0.35 * s);
+  g.strokeStyle = '#d2a95c'; g.lineWidth = 2;
+  g.strokeRect(X(cx - 0.175), Z(cz - 0.175), 0.35 * s, 0.35 * s);
+  g.fillStyle = '#ECE3BD'; g.font = '10px sans-serif'; g.fillText('Colonne / Chute', X(cx - 0.14), Z(cz + 0.28));
+
+  // Sanitaires
+  items.forEach(it => {
+    g.save();
+    g.translate(X(it.x), Z(it.z));
+    g.rotate(it.rot);
+    g.fillStyle = 'rgba(255,255,255,0.08)';
+    g.strokeStyle = (it === sel) ? '#38bdf8' : '#ECE3BD';
+    g.lineWidth = 2;
+    g.fillRect(-it.w / 2 * s, -it.d / 2 * s, it.w * s, it.d * s);
+    g.strokeRect(-it.w / 2 * s, -it.d / 2 * s, it.w * s, it.d * s);
+
+    if (it.type === 'door') {
+      g.lineWidth = 1.5; g.setLineDash([4, 4]);
+      g.beginPath(); g.arc(-it.w/2 * s, 0, it.w * s, 0, Math.PI / 2); g.stroke();
+      g.setLineDash([]);
+    }
+    g.restore();
+
+    g.fillStyle = '#ECE3BD'; g.font = '11px sans-serif'; g.textAlign = 'center';
+    g.fillText(`${it.name} (${Math.round(it.w*100)}×${Math.round(it.d*100)})`, X(it.x), Z(it.z) + 4);
+    g.textAlign = 'left';
+  });
+
+  // Tracé des conduites
+  const drawLine = (pts, color, width, dash = []) => {
+    g.strokeStyle = color; g.lineWidth = width; g.setLineDash(dash);
+    g.beginPath();
+    pts.forEach((p, i) => i ? g.lineTo(X(p[0]), Z(p[1])) : g.moveTo(X(p[0]), Z(p[1])));
+    g.stroke();
+    g.setLineDash([]);
+  };
+
+  items.forEach(it => {
+    const P = portsOf(it);
+    if (P.dr) drawLine(route('dr', P.dr), '#94a3b8', /^wc/.test(it.type) ? 5 : 3, [6, 4]);
+    if (P.cold) drawLine(route('cold', P.cold), '#38bdf8', 2.5);
+    if (P.hot) drawLine(route('hot', P.hot), '#f87171', 2.5);
+  });
+
+  // Légende
+  g.font = 'bold 13px sans-serif'; g.fillStyle = '#ECE3BD'; g.fillText('Schéma de raccordement technique (Le Coup de Main)', 16, 24);
+  [['#38bdf8', 'Multicouche Eau Froide'], ['#f87171', 'Multicouche Eau Chaude'], ['#94a3b8', 'Évacuation PVC (Gros trait: Ø100 WC)']].forEach((l, i) => {
+    g.fillStyle = l[0]; g.fillRect(16, ch - 65 + i * 18, 20, 3);
+    g.fillStyle = '#ECE3BD'; g.font = '11.5px sans-serif'; g.fillText(l[1], 44, ch - 60 + i * 18);
+  });
+}
+
+/* ---------- Contrôles caméra & Glisser-Déposer ---------- */
+function setView(v) {
+  view = v;
+  document.querySelectorAll('#tabs button[data-v]').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  gl.style.display = (v === 'plan') ? 'none' : 'block';
+  pc.style.display = (v === 'plan') ? 'block' : 'none';
+  $('hint').style.display = (v === 'plan') ? 'none' : 'block';
+  cam = (v === 'top') ? ortho : persp;
+  resize();
+  if (v === 'plan') drawPlan();
+}
+
+function resize() {
+  const w = gl.clientWidth || 1, h = gl.clientHeight || 1;
+  rend.setSize(w, h);
+  const a = w / h;
+  persp.aspect = a;
+  persp.updateProjectionMatrix();
+
+  const hh = Math.max(W/2 + 0.6, (L/2 + 0.6) / a);
+  ortho.left = -hh * a; ortho.right = hh * a; ortho.top = hh; ortho.bottom = -hh;
+  ortho.updateProjectionMatrix();
+
+  if (view === 'plan') drawPlan();
+}
+
+function placeCam() {
+  if (view === 'top') {
+    ortho.position.set(L/2, 12, W/2);
+    ortho.up.set(0, 0, -1);
+    ortho.lookAt(L/2, 0, W/2);
+  } else {
+    const t = new THREE.Vector3(L/2, 0.8, W/2);
+    persp.position.set(
+      t.x + sph.r * Math.sin(sph.p) * Math.sin(sph.t),
+      t.y + sph.r * Math.cos(sph.p),
+      t.z + sph.r * Math.sin(sph.p) * Math.cos(sph.t)
+    );
+    persp.up.set(0, 1, 0);
+    persp.lookAt(t);
+  }
+}
+
+function loop() {
+  requestAnimationFrame(loop);
+  if (view === 'plan') return;
+  placeCam();
+  if (sel && hl.visible) hl.setFromObject(sel.g);
+  rend.render(scene, cam);
+}
+
+const ray = new THREE.Raycaster(), fp = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), v2 = new THREE.Vector2();
+
+function ndc(e) {
+  const r = gl.getBoundingClientRect();
+  v2.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(v2, cam);
+}
+
+function floorPt() {
+  const p = new THREE.Vector3();
+  return ray.ray.intersectPlane(fp, p) ? p : null;
+}
+
+gl.addEventListener('pointerdown', e => {
+  ndc(e);
+  const hit = ray.intersectObjects(items.map(i => i.g), true);
+  if (hit.length) {
+    let o = hit[0].object;
+    while (o.parent && o.parent !== scene) o = o.parent;
+    const it = items.find(i => i.g === o);
+    select(it);
+    const p = floorPt();
+    drag = { it, dx: p ? it.x - p.x : 0, dz: p ? it.z - p.z : 0 };
+  } else {
+    select(null);
+    if (view === '3d') orb = { x: e.clientX, y: e.clientY };
+  }
+  gl.setPointerCapture(e.pointerId);
 });
-gl.addEventListener('pointermove',e=>{
- if(drag){ndc(e);const p=floorPt();if(p){drag.it.x=p.x+drag.dx;drag.it.z=p.z+drag.dz;snap(drag.it);place(drag.it);refresh()}}
- else if(orb){sph.t-=(e.clientX-orb.x)*.006;sph.p=Math.max(.25,Math.min(1.5,sph.p-(e.clientY-orb.y)*.005));orb={x:e.clientX,y:e.clientY}}
-});
-const end=()=>{drag=null;orb=null};gl.addEventListener('pointerup',end);gl.addEventListener('pointercancel',end);
-gl.addEventListener('wheel',e=>{e.preventDefault();sph.r=Math.max(2,Math.min(14,sph.r*(1+e.deltaY*.001)))},{passive:false});
-addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!/INPUT|SELECT/.test(document.activeElement.tagName))del()});
-addEventListener('resize',resize);
 
-/* ---------- Panneau ---------- */
-document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addItem(b.dataset.add));
-document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
-$('bdel').onclick=del;$('bclear').onclick=()=>{items.forEach(i=>scene.remove(i.g));items=[];select(null);refresh()};
-$('brot').onclick=()=>{if(!sel)return;sel.rot+=Math.PI/2;if(sel.rot>3.2)sel.rot-=2*Math.PI;contact(sel);place(sel);refresh()};
-const upd=()=>{if(!sel)return;sel.w=Math.max(.2,(+$('sw').value||40)/100);sel.d=Math.max(.04,(+$('sd').value||10)/100);sel.fin=$('sfin').value;sel.sill=(+$('sh').value||0)/100;contact(sel);mk(sel);refresh()};
-['sw','sd','sh'].forEach(i=>$(i).onchange=upd);$('sfin').onchange=upd;
-const rebuild=()=>{L=Math.max(1.5,(+$('rl').value||300)/100);W=Math.max(1.5,(+$('rw').value||240)/100);H=Math.max(2.2,(+$('rh').value||250)/100);buildRoom();items.forEach(i=>{contact(i);place(i)});resize();refresh()};
-['rl','rw','rh'].forEach(i=>$(i).onchange=rebuild);$('tf').onchange=$('tw').onchange=buildRoom;
+gl.addEventListener('pointermove', e => {
+  if (drag) {
+    ndc(e);
+    const p = floorPt();
+    if (p) {
+      drag.it.x = p.x + drag.dx;
+      drag.it.z = p.z + drag.dz;
+      snap(drag.it);
+      place(drag.it);
+      refresh();
+    }
+  } else if (orb) {
+    sph.t -= (e.clientX - orb.x) * 0.006;
+    sph.p = Math.max(0.2, Math.min(1.5, sph.p - (e.clientY - orb.y) * 0.005));
+    orb = { x: e.clientX, y: e.clientY };
+  }
+});
+
+const pointerEnd = () => { drag = null; orb = null; };
+gl.addEventListener('pointerup', pointerEnd);
+gl.addEventListener('pointercancel', pointerEnd);
+
+gl.addEventListener('wheel', e => {
+  e.preventDefault();
+  sph.r = Math.max(2, Math.min(14, sph.r * (1 + e.deltaY * 0.001)));
+}, { passive: false });
+
+addEventListener('keydown', e => {
+  if ((e.key === 'Delete' || e.key === 'Backspace') && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) {
+    del();
+  }
+});
+addEventListener('resize', resize);
+
+/* ---------- Gestion des Étapes & Événements ---------- */
+function setStep(stepNum) {
+  document.querySelectorAll('.steps-nav button').forEach(b => b.classList.toggle('active', +b.dataset.step === stepNum));
+  document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+  const target = $('step' + stepNum);
+  if (target) target.classList.add('active');
+  select(null);
+  refresh();
+}
+
+document.querySelectorAll('.steps-nav button').forEach(b => b.onclick = () => setStep(+b.dataset.step));
+document.querySelectorAll('.next-btn').forEach(b => b.onclick = () => setStep(+b.dataset.next));
+document.querySelectorAll('.prev-btn').forEach(b => b.onclick = () => setStep(+b.dataset.prev));
+document.querySelectorAll('#tabs button[data-v]').forEach(b => b.onclick = () => setView(b.dataset.v));
+
+// Pièce
+const rebuildRoom = () => {
+  L = Math.max(1.5, (+$('rl').value || 300) / 100);
+  W = Math.max(1.5, (+$('rw').value || 240) / 100);
+  H = Math.max(2.0, (+$('rh').value || 250) / 100);
+  buildRoom();
+  items.forEach(i => { contact(i); place(i); });
+  resize();
+  refresh();
+};
+['rl', 'rw', 'rh'].forEach(id => $(id).onchange = rebuildRoom);
+$('tf').onchange = $('tw').onchange = buildRoom;
+
+// Déplacement de la colonne
+$('colPos').onchange = () => {
+  colCorner = parseInt($('colPos').value, 10);
+  buildRoom();
+  refresh();
+};
+
+// Modification élément sélectionné
+$('bdel').onclick = del;
+$('brot').onclick = () => {
+  if (!sel) return;
+  sel.rot += Math.PI / 2;
+  contact(sel);
+  place(sel);
+  refresh();
+};
+
+const updateSelectedDims = () => {
+  if (!sel) return;
+  sel.w = Math.max(0.3, (+$('sw').value || 80) / 100);
+  sel.d = Math.max(0.3, (+$('sd').value || 50) / 100);
+  sel.fin = $('sfin').value;
+  contact(sel);
+  mk(sel);
+  refresh();
+};
+$('sw').onchange = updateSelectedDims;
+$('sd').onchange = updateSelectedDims;
+$('sfin').onchange = updateSelectedDims;
+
+// Ajouts
+$('add_door').onclick = () => addItem('door', { name: 'Porte d'accès 83 cm', w: 0.83, d: 0.08 });
+$('add_window').onclick = () => addItem('window', { name: 'Fenêtre (Allège 100 cm)', w: 0.9, d: 0.08 });
+
+$('add_shower').onclick = () => {
+  const l = (+$('sh_l').value || 120) / 100;
+  const w = (+$('sh_w').value || 80) / 100;
+  const gw = (+$('sh_gw').value || 100) / 100;
+  addItem('shower', { name: `Douche ${Math.round(l*100)}×${Math.round(w*100)}`, w: l, d: w, gw: Math.min(gw, l) });
+};
+
+$('add_vanity').onclick = () => {
+  const w = (+$('vk_w').value || 80) / 100;
+  const fin = $('vk_fin').value;
+  const model = $('vk_type').value;
+  addItem('vanity', { name: `Meuble Vasque ${Math.round(w*100)} cm`, w, d: 0.5, fin, model });
+};
+
+$('add_wc').onclick = () => addItem('wc', { name: 'WC Suspendu Bâti', w: 0.5, d: 0.55 });
+$('add_wc2').onclick = () => addItem('wc2', { name: 'WC Posé', w: 0.38, d: 0.65 });
+$('add_bath').onclick = () => addItem('bath', { name: 'Baignoire 170×70', w: 1.7, d: 0.7 });
+$('add_mirror').onclick = () => addItem('mirror', { name: 'Miroir Rétro-LED', w: 0.9, d: 0.05 });
+$('add_dryer').onclick = () => {
+  const isWater = $('dryerType').value === 'water';
+  addItem('rad', { name: isWater ? 'Sèche-serviettes Eau Chaude' : 'Sèche-serviettes Électrique', w: 0.5, d: 0.1 });
+};
+
+// Capture
+$('btnCapturePhoto').onclick = () => {
+  if (view === 'plan') {
+    const dataUrl = pc.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = 'plan-technique-reseau-lecoupdemain.png';
+    link.href = dataUrl;
+    link.click();
+  } else {
+    rend.render(scene, cam);
+    const dataUrl = rend.domElement.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = 'implantation-3d-lecoupdemain.png';
+    link.href = dataUrl;
+    link.click();
+  }
+};
+
+// Envoi final
+$('btnSubmitMail').onclick = () => {
+  const nom = $('cl_nom').value.trim();
+  const tel = $('cl_tel').value.trim();
+  const ville = $('cl_ville').value.trim();
+  const mail = $('cl_mail').value.trim();
+  const rem = $('cl_rem').value.trim();
+
+  if (!nom || !tel || !ville) {
+    alert('Merci de renseigner votre Nom, Téléphone et Ville avant de transmettre votre projet.');
+    return;
+  }
+
+  const recapItems = items.map(i => `- ${i.name} (L: ${Math.round(i.w*100)} cm, P: ${Math.round(i.d*100)} cm)`).join('%0D%0A');
+  const sujet = encodeURIComponent(`Demande d'implantation Salle de Bain 3D - ${nom} (${ville})`);
+  
+  const corps = encodeURIComponent(
+    `Bonjour Julien (Le Coup de Main Services),%0D%0A%0D%0A` +
+    `Je viens de finaliser mon projet d'implantation 3D sur votre configurateur :%0D%0A%0D%0A` +
+    `--- COORDONNÉES CLIENT ---%0D%0A` +
+    `Nom & Prénom : ${nom}%0D%0A` +
+    `Téléphone : ${tel}%0D%0A` +
+    `Ville / Secteur : ${ville}%0D%0A` +
+    `Email : ${mail || 'Non renseigné'}%0D%0A` +
+    `Remarques / Besoins : ${rem || 'Aucune'}%0D%0A%0D%0A` +
+    `--- DONNÉES TECHNIQUES PIÈCE ---%0D%0A` +
+    `Dimensions pièce : ${L} m x ${W} m (Hauteur : ${H} m)%0D%0A` +
+    `Sol sélectionné : ${$('tf').value}%0D%0A` +
+    `Murs sélectionnés : ${$('tw').value}%0D%0A` +
+    `Chauffage déclaré : ${$('heatType').value}%0D%0A` +
+    `Arrivée technique colonne : ${$('colPos').options[$('colPos').selectedIndex].text}%0D%0A%0D%0A` +
+    `--- ÉQUIPEMENTS IMPLANTÉS ---%0D%0A`
+  ) + recapItems + encodeURIComponent(
+    `%0D%0A%0D%0A* Rappel : Cette implantation est réalisée à titre indicatif pour cadrer les volumes, et sera validée lors de votre diagnostic technique sur place.*%0D%0A%0D%0A` +
+    `Merci de me recontacter pour échanger sur la faisabilité et le devis.`
+  );
+
+  window.location.href = `mailto:contact@lecoupdemain.fr?subject=${sujet}&body=${corps}`;
+};
+
 initScene();
-const CFG={email:'contact@votre-site.fr'},PRO=/[?&]pro=1/.test(location.search);let step=1,canSave=false;
-const S=(e,n)=>{e.classList.add('stp');e.dataset.s=n};
-S($('rl').closest('#side>div'),1);S(document.querySelector('.cat'),2);S($('bill'),3);S($('bclear'),3);
-if(!PRO)document.querySelector('[data-v="plan"]').style.display='none';
-function setStep(n){step=Math.max(1,Math.min(3,n));document.body.dataset.step=step;document.querySelectorAll('#steps button').forEach(b=>b.classList.toggle('on',+b.dataset.st===step));$('bnext').textContent=step<3?'Étape suivante':'Envoyer mon projet';if(step!==2)select(null);refresh()}
-function begin(){$('start').style.display='none';canSave=true;setStep(1)}
-function sendProj(){const l=[`Projet salle de bain ${L.toFixed(2)} x ${W.toFixed(2)} m, hauteur ${H} m`,'',...items.map(i=>'- '+i.name+' '+Math.round(i.w*100)+' cm'),'',...[...$('billList').children].map(li=>[...li.children].map(c=>c.textContent).join(' : '))];location.href='mailto:'+CFG.email+'?subject='+encodeURIComponent('Mon projet de salle de bain')+'&body='+encodeURIComponent(l.join('\n'))}
-function loadProj(){try{const s=JSON.parse(localStorage.getItem('sdb'));L=s.L;W=s.W;H=s.H;$('rl').value=L*100;$('rw').value=W*100;$('rh').value=H*100;$('tf').value=s.tf;$('tw').value=s.tw;buildRoom();s.items.forEach(r=>{r.g=null;mk(r);items.push(r);uid=Math.max(uid,r.id+1)});select(null);refresh();return true}catch(e){return false}}
-document.querySelectorAll('#steps button').forEach(b=>b.onclick=()=>setStep(+b.dataset.st));
-$('bnext').onclick=()=>step<3?setStep(step+1):sendProj();
-[['Petite',2,1.8],['Moyenne',3,2.4],['Grande',4,3],['Carrée',2.5,2.5]].forEach(([n,l,w])=>{const b=document.createElement('button');b.innerHTML=`<svg width="100" height="80" viewBox="0 0 100 80"><rect x="${50-l*10}" y="${40-w*10}" width="${l*20}" height="${w*20}" fill="none" stroke="currentColor" stroke-width="3"/></svg><div>${n}</div><small>${l} × ${w} m</small>`;b.onclick=()=>{$('rl').value=l*100;$('rw').value=w*100;rebuild();begin()};$('pre').appendChild(b)});
-try{if(JSON.parse(localStorage.getItem('sdb')).items.length)$('resume').style.display='block'}catch(e){}
-$('resume').onclick=()=>{if(loadProj()){begin();setStep(2)}};
-select(null);refresh();
+select(null);
+refresh();
 </script>
 </body>
 </html>
