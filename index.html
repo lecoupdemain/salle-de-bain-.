@@ -1,423 +1,636 @@
-<!DOCTYPE html>  
-<html lang="fr">  
-<head>  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">  
-<title>Le Coup de Main · Implantation de salle de bain</title>  
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>  
-<style>  
-:root{--bg:#ECE3BD;--panel:#fffdf7;--ink:#26363b;--mut:#62707a;--line:#d9cf9f;--acc:#33555F;--accink:#fff;--field:#f6f1dc;--warn:#fbf0d4;--warnink:#6b4e0b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}  
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a1b;--panel:#1a2325;--ink:#e9efee;--mut:#97a8a8;--line:#2f3d3f;--acc:#7fb0bc;--accink:#0d1b1f;--field:#223032;--warn:#3a321a;--warnink:#f0d99b}}  
-:root[data-theme="dark"]{--bg:#121a1b;--panel:#1a2325;--ink:#e9efee;--mut:#97a8a8;--line:#2f3d3f;--acc:#7fb0bc;--accink:#0d1b1f;--field:#223032;--warn:#3a321a;--warnink:#f0d99b}  
-*{box-sizing:border-box;margin:0}  
-html,body{height:100%}  
-body{background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;overflow:hidden}  
-#side{width:390px;min-width:390px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column}  
-#head{padding:16px 18px 10px;border-bottom:1px solid var(--line)}  
-.brand{font-size:12px;color:var(--acc);font-weight:700;letter-spacing:.02em}  
-h1{font-size:18px;margin:2px 0 8px}  
-#prog{height:5px;background:var(--line);border-radius:3px;overflow:hidden}#pbar{height:100%;background:var(--acc);transition:width .25s}  
-#stl{font-size:12px;color:var(--mut);margin-top:5px;display:flex;justify-content:space-between;align-items:center}  
-#resetBtn{background:none;border:none;color:var(--mut);text-decoration:underline;width:auto;padding:0;font-size:11px;font-weight:400}  
-#sc{flex:1;overflow-y:auto;padding:14px 18px}  
-.warn{background:var(--warn);color:var(--warnink);border-radius:10px;padding:9px 12px;font-size:12.5px;margin-bottom:12px}  
-a{color:var(--acc)}  
-h2{font-size:16px;margin-bottom:4px}  
-p.h{font-size:13px;color:var(--mut);margin:4px 0 8px}  
-label{font-size:12px;color:var(--mut);display:block;margin-bottom:3px}  
-input,select,textarea,button{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}  
-button{cursor:pointer;font-weight:600}button:hover{border-color:var(--acc)}  
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--acc);outline-offset:1px}  
-.pri{background:var(--acc);color:var(--accink);border-color:var(--acc)}  
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.fld{margin-top:8px}  
-.chk{display:flex;gap:8px;align-items:center;margin-top:10px}.chk input{width:auto}.chk label{margin:0;color:var(--ink);font-size:13px}  
-.op{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px}.op b{margin-right:8px}.op .x{width:auto;padding:3px 10px;font-size:12px}  
-.stp{display:none}.stp.on{display:block}  
-#bill{list-style:none;padding:0;font-size:12.5px;margin:8px 0}#bill li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding:4px 0}#bill b{white-space:nowrap}  
-#foot{display:grid;grid-template-columns:1fr 2fr;gap:8px;padding:12px 18px;border-top:1px solid var(--line)}  
-#main{flex:1;display:flex;flex-direction:column;min-width:0}  
-#tabs{display:flex;gap:6px;padding:10px;background:var(--panel);border-bottom:1px solid var(--line)}#tabs button{width:auto;padding:7px 14px}#tabs button.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}  
-#stage{flex:1;position:relative;min-height:0}  
-#gl,#plan{position:absolute;inset:0;width:100%;height:100%;touch-action:none}#gl canvas{display:block}#plan{display:none}  
-#hint{position:absolute;left:12px;bottom:12px;background:rgba(15,25,26,.82);color:#eee;padding:7px 12px;border-radius:8px;font-size:12px;pointer-events:none;max-width:80%}  
-#fsBtn{position:absolute;top:12px;right:12px;background:rgba(15,25,26,.82);color:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;z-index:10;width:auto}  
-#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#8a2b2b;color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:20;max-width:90vw;font-size:13px}  
-@media (max-width:760px){body{flex-direction:column-reverse}#side{width:100%;min-width:0;height:54vh;border-right:0;border-top:1px solid var(--line)}}  
-</style>  
-</head>  
-<body>  
-<div id="side">  
- <div id="head"><div style="display:flex;gap:12px;align-items:center"><img id="logo" alt="Le Coup de Main, services à domicile" src="data:image/jpeg;base64,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" width="58" height="58" style="border-radius:10px;flex:none"><div><h1 style="margin:0 0 2px">Implantation de votre salle de bain</h1><div class="brand"><a href="https://www.lecoupdemain-services.fr" target="_blank" rel="noopener" style="text-decoration:none">www.lecoupdemain-services.fr</a></div></div></div><div style="height:8px"></div><div id="prog"><div id="pbar"></div></div><div id="stl"><span id="stTxt"></span><button id="resetBtn" type="button">Réinitialiser</button></div></div>  
- <div id="sc">  
-  <div class="warn">Cet outil sert uniquement à imaginer une implantation. Ce n’est en aucun cas un plan final : les cotes et les raccordements seront vérifiés sur place par un professionnel.</div>  
-   
-  <div class="stp" data-s="1"><h2>Votre taille de salle de bain</h2><p class="h">Merci de renseigner les dimensions intérieures de votre pièce.</p>  
-   <div class="row2"><div><label>Longueur (cm)</label><input type="number" id="rl" value="300" step="10"></div><div><label>Largeur (cm)</label><input type="number" id="rw" value="240" step="10"></div></div>  
-   <div class="fld"><label>Hauteur sous plafond (cm)</label><input type="number" id="rh" value="250" step="5"></div><p class="h" id="surf"></p></div>  
-   
-  <div class="stp" data-s="2"><h2>Portes et fenêtres</h2><p class="h">Ajoutez la porte (et son sens d'ouverture), ainsi que la ou les fenêtres. Les murs sont nommés A, B, C, D sur le schéma.</p>  
-   <div class="row2"><button id="addDoor">+ Porte</button><button id="addWin">+ Fenêtre</button></div><div id="oplist"></div></div>  
-   
-  <div class="stp" data-s="3"><h2>Vos conduites</h2><p class="h">Cliquez sur le schéma à l’endroit où arrivent, plus ou moins, vos conduites d’eau et l’évacuation. Elles cheminent le long des murs et contournent la porte.</p><p class="h" id="feedtxt"></p>  
-   <div class="fld"><label>Y a-t-il un chauffage existant dans la pièce ?</label><select id="hsel"><option value="none">Non</option><option value="eau">Oui, un radiateur à eau</option><option value="elec">Oui, un radiateur électrique</option></select></div>  
-   <div class="row2" id="hrow" style="display:none"><div><label>Sur quel mur</label><select id="hwall"></select></div><div><label>Position du centre (cm)</label><input type="number" id="hpos" value="100" step="5"></div></div></div>  
-   
-  <div class="stp" data-s="4"><h2>Douche et baignoire</h2><p class="h">Glissez les équipements sur le plan 3D pour les déplacer : ils se collent aux murs et refusent les emplacements impossibles. (Double-clic sur un meuble pour le pivoter à 90°)</p>  
-   <div class="chk"><input type="checkbox" id="i_shower" class="eq" checked><label for="i_shower">Je veux une douche</label></div>  
-   <div class="row2"><div><label>Receveur, longueur (cm)</label><input class="eq" type="number" id="sl" value="120" step="5" min="70" max="200"></div><div><label>Receveur, profondeur (cm)</label><input class="eq" type="number" id="sw2" value="80" step="5" min="70" max="120"></div>  
-   <div><label>Paroi de verre, largeur (cm)</label><input class="eq" type="number" id="gw" value="100" step="5" min="40" max="200"></div><div><label>Paroi, hauteur (cm)</label><input class="eq" type="number" id="gh" value="200" step="5" min="160" max="220"></div></div>  
-   <div class="row2">  
-    <div><label>Côté paroi fixe (vu de face)</label><select class="eq" id="gside"><option value="-1">À gauche</option><option value="1" selected>À droite</option></select></div>  
-    <div><label>Mitigeur, côté (vu de face)</label><select class="eq" id="mix"><option value="-1">À gauche</option><option value="0">Au centre</option><option value="1" selected>À droite</option></select></div>  
-   </div>  
-   <div class="chk"><input type="checkbox" id="i_bath" class="eq"><label for="i_bath">Ajouter aussi une baignoire (170 × 70 cm)</label></div></div>  
-   
-  <div class="stp" data-s="5"><h2>Meuble vasque</h2><p class="h">Choisissez la taille, une ou deux vasques, et le miroir.</p>  
-   <div class="chk"><input type="checkbox" id="i_vanity" class="eq" checked><label for="i_vanity">Je veux un meuble vasque</label></div>  
-   <div class="row2"><div><label>Largeur</label><select class="eq" id="vw"><option value="60">60 cm</option><option value="80" selected>80 cm</option><option value="100">100 cm</option><option value="120">120 cm</option><option value="140">140 cm</option><option value="160">160 cm</option></select></div><div><label>Vasques</label><select class="eq" id="vcfg"><option value="auto">Automatique</option><option value="1">Simple</option><option value="2">Double</option></select></div></div>  
-   <div class="fld"><label>Finition du meuble</label><select class="eq" id="vfin"></select></div>  
-   <div class="chk"><input type="checkbox" id="vmir" class="eq" checked><label for="vmir">Avec miroir lumineux</label></div></div>  
-   
-  <div class="stp" data-s="6"><h2>WC</h2><p class="h">Suspendu avec bâti-support, ou à poser au sol sans bâti.</p>  
-   <div class="chk"><input type="checkbox" id="i_wc" class="eq" checked><label for="i_wc">Je veux un WC</label></div>  
-   <div class="fld"><label>Type</label><select class="eq" id="wtype"><option value="wc">Suspendu avec bâti</option><option value="wc2">À poser, sans bâti</option></select></div>  
-   <div class="chk"><input type="checkbox" id="i_wcshelf" class="eq" checked><label for="i_wcshelf">Coffrage mi-hauteur avec tablette déco bois</label></div></div>  
-   
-  <div class="stp" data-s="7"><h2>Sèche-serviettes et patères</h2><p class="h">Raccordé au réseau d’eau chaude ou électrique.</p>  
-   <div class="chk"><input type="checkbox" id="i_rad" class="eq"><label for="i_rad">Je veux un sèche-serviettes</label></div>  
-   <div class="row2"><div><label>Type</label><select class="eq" id="rtype"><option value="eau">Sur le réseau (eau chaude)</option><option value="elec">Électrique</option></select></div><div><label>Largeur</label><select class="eq" id="rw2"><option value="50">50 cm</option><option value="60">60 cm</option></select></div></div><div class="fld"><label>Nombre de patères (serviettes, peignoirs)</label><input class="eq" type="number" id="npat" value="2" min="0" max="10"></div></div>  
-   
-  <div class="stp" data-s="8"><h2>Finitions</h2><p class="h">Choisissez l’ambiance de votre salle de bain.</p>  
-   <div class="fld"><label>Sol</label><select id="tf"><option value="slate">Ardoise anthracite 60×120</option><option value="terrazzo">Terrazzo clair 60×60</option><option value="oak">Parquet chêne clair</option><option value="cement">Carreaux de ciment 30×30</option></select></div>  
-   <div class="fld"><label>Murs</label><select id="tw"><option value="zellige">Zellige vert sauge 10×10</option><option value="marble">Marbre blanc veiné 60×120</option><option value="metro">Carreau métro blanc 7,5×15</option><option value="plaster">Enduit tadelakt sable</option><option value="cement">Carreaux de ciment 30×30</option></select></div></div>  
-   
-  <div class="stp" data-s="9"><h2>Vos coordonnées</h2><p class="h">Votre projet nous sera envoyé avec une demande de renseignements. Nous vous recontactons pour valider l’implantation sur place.</p><p class="h">Une question ? <a href="mailto:contact@lecoupdemain-services.fr">contact@lecoupdemain-services.fr</a> · <a href="https://www.lecoupdemain-services.fr" target="_blank" rel="noopener">www.lecoupdemain-services.fr</a></p>  
-   <ul id="bill"></ul><div class="row2"><button id="dl3" type="button">Télécharger ma vue 3D (HD)</button><button id="dlp" type="button">Télécharger le schéma technique</button></div>  
-   <div class="fld"><button id="bwa" type="button" style="background:#25D366;color:#fff;border-color:#25D366;">Envoyer mon dossier technique par WhatsApp</button></div>  
-   <div class="fld"><button id="bphoto" type="button">Envoyer une photo de mon chantier actuel</button></div>  
-   <div class="row2"><div><label>Nom *</label><input id="f_nom"></div><div><label>Prénom *</label><input id="f_prenom"></div></div>  
-   <div class="fld"><label>Adresse</label><input id="f_adr"></div>  
-   <div class="row2"><div><label>Code postal</label><input id="f_cp"></div><div><label>Ville</label><input id="f_ville"></div><div><label>Téléphone *</label><input id="f_tel" type="tel"></div><div><label>E-mail *</label><input id="f_mail" type="email"></div></div>  
-   <div class="fld"><label>Votre projet</label><select id="f_proj"><option>Rénovation complète</option><option>Remplacement de la baignoire par une douche</option><option>Salle de bain neuve</option><option>Autre</option></select></div>  
-   <div class="fld"><label>Message ou demande de renseignements</label><textarea id="f_msg" rows="3"></textarea></div>  
-   <div class="chk"><input type="checkbox" id="f_ok"><label for="f_ok">Je comprends que ce schéma est une implantation indicative et non un plan définitif.</label></div><p class="h">Vos données servent uniquement à répondre à votre demande (voir les <a href="https://www.lecoupdemain-services.fr/#cgv" target="_blank" rel="noopener">CGV, article 11</a>).</p><div id="done" class="warn" style="display:none;background:#e6f4ea;color:#14532d">Merci ! Votre projet et son dossier technique ont bien été envoyés à Julien. Il vous recontacte rapidement. Pensez à télécharger votre vue 3D ci-dessus.</div></div>  
- </div>  
- <div id="foot"><button id="bprev">Retour</button><button id="bnext" class="pri">Suivant</button></div>  
-</div>  
-<div id="main">  
- <div id="tabs"><button data-v="plan">Schéma technique</button><button data-v="3d">Vue 3D</button><button data-v="top">Vue de dessus</button></div>  
- <div id="stage">  
-  <div id="gl"></div>  
-  <canvas id="plan"></canvas>  
-  <div id="hint"></div>  
-  <button id="fsBtn" title="Plein écran">⛶ Plein écran</button>  
- </div>  
-</div>  
-<div id="toast"></div>  
-<script>  
-const $=i=>document.getElementById(i),CFG={email:'contact@lecoupdemain-services.fr',site:'https://www.lecoupdemain-services.fr',form:'https://formspree.io/f/xyzrndwa',tube:'multicouche ou PER',tel:'06 46 66 42 22'};  
-let L=3,W=2.4,H=2.5,ops=[],items=[],feed={x:.1,z:.1,w:0},heat={on:false,wall:3,pos:1,type:'eau'},heatG=null,step=1,maxStep=1,view='plan',drag=null,orb=null,calc={},tt;  
-const ROT=[0,-Math.PI/2,Math.PI,Math.PI/2],WN=['A (fond)','B (droite)','C (devant)','D (gauche)'];  
-const SWING={pg:'Poussant gauche (intérieur)',pd:'Poussant droit (intérieur)',tg:'Tirant gauche (extérieur)',td:'Tirant droit (extérieur)'};  
-const TOP={vanity:1.05,shower:2.05,wc:1.05,wc2:.9,bath:.6,rad:1.55};  
-const NAME={shower:'Douche',bath:'Baignoire',vanity:'Meuble vasque',wc:'WC suspendu',wc2:'WC à poser',rad:'Sèche-serviettes'};  
-const MSG={room:'Hors de la pièce',item:'Il y a déjà un équipement ici',door:'Impossible : emplacement bloqué par l’ouverture de la porte',window:'Impossible : la fenêtre est trop basse pour cet équipement',heat:'Impossible : emplacement occupé par le chauffage existant'};  
-const FIN={white:['Blanc brillant',0xf4f4f2],oak:['Chêne clair',0xc8a06a],anth:['Gris anthracite',0x3a3f45],green:['Vert sauge',0x7d8f79]};  
-const STL=['Ma pièce','Portes et fenêtres','Mes conduites','Douche et baignoire','Meuble vasque','WC','Sèche-serviettes et patères','Finitions','Mes coordonnées'];  
-for(const k in FIN)$('vfin').add(new Option(FIN[k][0],k));WN.forEach((n,k)=>$('hwall').add(new Option(n,k)));$('hwall').value=3;  
-function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',2600)}  
-  
-/* ---------- Textures ---------- */  
-const KIND={slate:{b:[44,50,58],c:2,r:1,v:10,gr:'#14171b',gl:.45},terrazzo:{b:[226,218,204],c:2,r:2,v:6,gr:'#c3baa9',gl:.4,fl:1},oak:{b:[190,148,98],c:1,r:8,v:14,gr:'#6b4f2f',gl:.5,wood:1},marble:{b:[236,236,232],c:2,r:1,v:3,gr:'#c9cbcb',gl:.12,vein:1},zellige:{b:[62,112,98],c:12,r:12,v:20,gr:'#e3e0d6',gl:.15},metro:{b:[245,245,242],c:8,r:16,v:3,gr:'#a9aaa6',gl:.15,st:1},cement:{c:1,r:0,gl:.35},plaster:{c:1,r:0,gl:.85}};  
-function tex(kind,rx,ry){const K=KIND[kind],S=1024,cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d'),R=Math.random;  
- if(K.r){const tw=S/K.c,th=S/K.r;  
-  for(let i=0;i<K.r;i++){const off=K.st?(i%2?tw/2:0):K.wood?R()*tw:0;  
-   for(let j=-1;j<=K.c;j++){const x=j*tw+off,y=i*th,v=(R()-.5)*K.v*2;  
-    g.save();g.beginPath();g.rect(x,y,tw,th);g.clip();g.fillStyle=`rgb(${K.b.map(a=>a+v|0)})`;g.fillRect(x,y,tw,th);  
-    if(K.wood)for(let n=0;n<14;n++){g.strokeStyle=`rgba(90,60,30,${.05+R()*.12})`;g.lineWidth=1;g.beginPath();const yy=y+R()*th;g.moveTo(x,yy);g.bezierCurveTo(x+tw*.3,yy+R()*4-2,x+tw*.6,yy+R()*4-2,x+tw,yy);g.stroke()}  
-    if(K.vein)for(let n=0;n<3;n++){g.strokeStyle=`rgba(110,115,120,${.15+R()*.3})`;g.lineWidth=1+R()*2;g.beginPath();g.moveTo(x+R()*tw,y);g.bezierCurveTo(x+R()*tw,y+th*.3,x+R()*tw,y+th*.6,x+R()*tw,y+th);g.stroke()}  
-    if(K.fl)for(let n=0;n<40;n++){g.fillStyle=['#8c7b6a','#b9a58f','#5d6b74','#d8cfc2','#a3523f'][n%5];g.beginPath();g.arc(x+R()*tw,y+R()*th,1.5+R()*3,0,7);g.fill()}  
-    if(kind==='zellige'){const q=g.createLinearGradient(x,y,x+tw,y+th);q.addColorStop(0,'rgba(255,255,255,.2)');q.addColorStop(1,'rgba(0,0,0,.16)');g.fillStyle=q;g.fillRect(x,y,tw,th)}  
-    g.restore();g.strokeStyle=K.gr;g.lineWidth=kind==='zellige'?5:3;g.strokeRect(x,y,tw,th)}}}  
- else if(kind==='cement'){const u=S/4;for(let i=0;i<4;i++)for(let j=0;j<4;j++){const a=(i+j)%2,c1=a?'#c9694a':'#1f3a5f',c2=a?'#1f3a5f':'#c9694a';  
-    g.save();g.translate((i+.5)*u,(j+.5)*u);g.beginPath();g.rect(-u/2,-u/2,u,u);g.clip();g.fillStyle='#efe6d3';g.fillRect(-u/2,-u/2,u,u);  
-    g.fillStyle=c1;g.rotate(Math.PI/4);g.fillRect(-u*.3,-u*.3,u*.6,u*.6);g.rotate(-Math.PI/4);g.fillStyle=c2;g.beginPath();g.arc(0,0,u*.2,0,7);g.fill();  
-    g.strokeStyle=c1;g.lineWidth=5;g.strokeRect(-u/2+10,-u/2+10,u-20,u-20);g.restore();g.strokeStyle='#b5aa95';g.lineWidth=4;g.strokeRect(i*u,j*u,u,u)}}  
- else{g.fillStyle='#d6c4a6';g.fillRect(0,0,S,S);for(let n=0;n<140;n++){const x=R()*S,y=R()*S,r=40+R()*140,q=g.createRadialGradient(x,y,0,x,y,r),c=R()<.5?'255,250,240':'150,125,95';q.addColorStop(0,`rgba(${c},.10)`);q.addColorStop(1,`rgba(${c},0)`);g.fillStyle=q;g.fillRect(x-r,y-r,2*r,2*r)}}  
- for(let n=0;n<6000;n++){g.fillStyle=R()<.5?'rgba(0,0,0,.05)':'rgba(255,255,255,.05)';g.fillRect(R()*S,R()*S,2,2)}  
- const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.anisotropy=8;t.encoding=THREE.sRGBEncoding;  
- return new THREE.MeshPhysicalMaterial({map:t,bumpMap:t,bumpScale:.8,roughness:K.gl,metalness:.02,clearcoat:K.gl<.3?.6:0,clearcoatRoughness:.1,envMapIntensity:.4,side:THREE.DoubleSide})}  
-  
-/* ---------- Scène 3D ---------- */  
-const gl=$('gl'),pc=$('plan');let scene,persp,ortho,cam,rend,room;const sph={t:.7,p:1,r:5};  
-const M=(c,r=.4,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m,envMapIntensity:.5});  
-const CH=M(0xd9dadd,.12,.95),WH=M(0xffffff,.15),HD=M(0x2a2a2a,.3,.8);  
-function initScene(){scene=new THREE.Scene();scene.background=new THREE.Color(0x1d2829);  
- persp=new THREE.PerspectiveCamera(42,1,.1,60);ortho=new THREE.OrthographicCamera(-1,1,1,-1,.1,30);cam=persp;  
- rend=new THREE.WebGLRenderer({antialias:true});rend.setPixelRatio(Math.min(devicePixelRatio,2));rend.shadowMap.enabled=true;rend.shadowMap.type=THREE.PCFSoftShadowMap;rend.outputEncoding=THREE.sRGBEncoding;rend.toneMapping=THREE.ACESFilmicToneMapping;rend.toneMappingExposure=.85;gl.appendChild(rend.domElement);  
- scene.add(new THREE.HemisphereLight(0xffffff,0x6e7f80,.35));  
- const es=new THREE.Scene();es.background=new THREE.Color(0x7d8a8a);  
- [[0,5,0,6,.2,6,0xffffff,3],[5,2,0,.2,3,6,0xfff1dc,2],[-5,2,2,.2,3,5,0xcfe3ff,1.5]].forEach(a=>{const m=new THREE.Mesh(new THREE.BoxGeometry(a[3],a[4],a[5]),new THREE.MeshBasicMaterial({color:new THREE.Color(a[6]).multiplyScalar(a[7])}));m.position.set(a[0],a[1],a[2]);es.add(m)});  
- scene.environment=new THREE.PMREMGenerator(rend).fromScene(es,.03).texture;  
- const d=new THREE.DirectionalLight(0xfff1dc,.95);d.position.set(4,6,5);d.castShadow=true;d.shadow.mapSize.set(2048,2048);Object.assign(d.shadow.camera,{left:-5,right:5,top:5,bottom:-5});d.shadow.bias=-.0004;scene.add(d);  
- const p=new THREE.PointLight(0xffd9a0,.35,8);scene.add(p);scene.userData.pl=p;buildRoom();loop()}  
-function buildRoom(){if(room)scene.remove(room);room=new THREE.Group();const fk=$('tf').value,wk=$('tw').value;  
- const mesh=(geo,mat,x,y,z,ry=0,rx=0)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.rotation.y=ry;m.rotation.x=rx;m.receiveShadow=true;room.add(m);return m};  
- mesh(new THREE.PlaneGeometry(L,W),tex(fk,L/1.2,W/1.2),L/2,0,W/2,0,-Math.PI/2);mesh(new THREE.PlaneGeometry(L,H),tex(wk,L/1.2,H/1.2),L/2,H/2,0);mesh(new THREE.PlaneGeometry(W,H),tex(wk,W/1.2,H/1.2),0,H/2,W/2,Math.PI/2);  
- const sm=M(0xe9e5dc,.8),bx=(a,b,c,x,y,z)=>mesh(new THREE.BoxGeometry(a,b,c),sm,x,y,z);  
- bx(L+.2,H,.1,L/2,H/2,-.05);bx(.1,H,W,-.05,H/2,W/2);bx(L+.2,.04,.1,L/2,.02,W+.05);bx(.1,.04,W,L+.05,.02,W/2);  
- const gm=new THREE.MeshBasicMaterial({color:0xcfd8e6,transparent:true,opacity:.06,side:THREE.DoubleSide,depthWrite:false});  
- mesh(new THREE.PlaneGeometry(L,H),gm,L/2,H/2,W);mesh(new THREE.PlaneGeometry(W,H),gm,L,H/2,W/2,Math.PI/2);  
- scene.add(room);scene.userData.pl.position.set(L/2,H-.2,W/2);sph.r=Math.max(L,W)*1.9}  
-function build(it){const g=new THREE.Group(),{w,d}=it,z0=-d/2,t=it.type,B=(a,b,c)=>new THREE.BoxGeometry(a,b,c),C=(r,h)=>new THREE.CylinderGeometry(r,r,h,24);  
- const add=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;g.add(m);return m};  
- if(t==='vanity'){add(B(w,.5,d),M(FIN[it.fin][1],.4),0,.55,0);add(B(w*.8,.015,.014),HD,0,.72,d/2+.006);add(B(w*.8,.015,.014),HD,0,.45,d/2+.006);add(B(w+.02,.04,d+.02),M(0xffffff,.1),0,.82,0);  
-  const n=it.dbl?2:1;for(let i=0;i<n;i++){const x=n===2?(i?1:-1)*w/4:0;add(B(Math.min(.46,w/n-.1),.03,.34),M(0xf3f6f8,.05),x,.845,.03);add(C(.03,.012),CH,x,.862,.03);add(C(.015,.2),CH,x,.94,z0+.06);add(C(.01,.14),CH,x,1.03,z0+.12).rotation.x=Math.PI/2}  
-  if(it.mir){const mw=Math.min(w*.9,1.4);add(B(mw+.06,.76,.012),new THREE.MeshBasicMaterial({color:0xffe6bd}),0,1.5,z0+.006);add(B(mw,.7,.03),M(0x30333a,.4),0,1.5,z0+.026);add(B(mw-.04,.66,.006),M(0xe6edf0,.03,.9),0,1.5,z0+.044)}}  
- else if(t==='shower'){  
-  const mx=it.mix*(w/2-.22),gw=Math.min(it.gw,w),gs=it.gside||1;  
-  const gx=gs*(w/2-gw/2),ge=gs*(w/2-gw);  
-  const gm=new THREE.MeshStandardMaterial({color:0xd5eff8,transparent:true,opacity:.45,roughness:0.05,metalness:.1,side:THREE.DoubleSide});  
-  add(B(w,.04,d),M(0xf2f2ef,.25),0,.02,0);  
-  add(B(.12,.006,.12),CH,0,.043,0);  
-  // Vitre + encadrement chromé  
-  add(B(gw,it.gh,.01),gm,gx,it.gh/2+.04,d/2-.01);  
-  add(B(gw,.025,.03),CH,gx,.03,d/2-.01);  
-  add(B(gw,.025,.03),CH,gx,it.gh+.04,d/2-.01);  
-  add(B(.03,it.gh,.03),CH,ge,it.gh/2+.04,d/2-.01);  
-  // Barre stabilisatrice  
-  add(C(.012,d),CH,ge,it.gh+.04,0).rotation.x=Math.PI/2;  
-  // Mitigeur et douche  
-  add(B(.16,.16,.025),CH,mx,1.05,z0+.015);add(C(.012,1),CH,mx,1.55,z0+.03);add(B(.3,.015,.3),CH,mx,2.1,z0+.2);add(C(.012,.18),CH,mx,2.1,z0+.06).rotation.x=Math.PI/2  
- }  
- else if(t==='wc'){  
-  add(B(w, it.shelf?1.15:1,.18), M(0xdcdad4,.7), 0, it.shelf?0.575:0.6, z0+.09);  
-  if(it.shelf) add(B(w+.04,.04,.24), M(0xc8a06a,.5), 0, 1.17, z0+.1);  
-  add(B(.22,.14,.01), CH, 0, it.shelf?1.05:1, z0+.185);  
-  const b=add(new THREE.SphereGeometry(.18,28,18),WH,0,.4,z0+.2);b.scale.set(.95,.62,1.4);  
-  const s=add(C(.17,.02),WH,0,.455,z0+.2);s.scale.set(1,1,1.4)  
- }  
- else if(t==='wc2'){add(B(w*.8,.43,.2),WH,0,.215,z0+.1);add(B(w,.4,.2),WH,0,.63,z0+.1);add(B(.12,.02,.05),CH,0,.84,z0+.1);const b=add(new THREE.SphereGeometry(.2,28,18),WH,0,.2,z0+.36);b.scale.set(.9,.9,1.55);const s=add(C(.17,.02),WH,0,.42,z0+.36);s.scale.set(1,1,1.5)}  
- else if(t==='bath'){add(B(w,.55,d),WH,0,.275,0);add(B(w-.1,.02,d-.1),M(0xbfdcee,.05),0,.55,0);add(C(.015,.22),CH,-w/2+.1,.66,0);add(C(.01,.12),CH,-w/2+.16,.76,0).rotation.z=Math.PI/2}  
- else if(t==='rad'||t==='oldrad'){const c=t==='rad'?0xf2f2f0:0xb8bcc0,n=t==='rad'?9:5;for(let i=0;i<n;i++)add(B(w,.025,.035),M(c,.4),0,.35+i*(t==='rad'?.15:.12),.03);add(B(.03,t==='rad'?1.45:.55,.04),M(c,.4),-w/2+.02,t==='rad'?1.05:.6,.03);add(B(.03,t==='rad'?1.45:.55,.04),M(c,.4),w/2-.02,t==='rad'?1.05:.6,.03);if(it.elec)add(B(.06,.06,.03),M(0x222222,.5),w/2-.05,.2,.04)}  
- else if(t==='door'){  
-  const sw=it.swing||'pg',isL=sw==='pg'||sw==='tg';  
-  add(B(w+.1,2.09,.06),M(0xf1efe9,.5),0,1.045,0);  
-  add(B(w,2.04,.03),M(0xb98e5b,.55),0,1.02,.045);  
-  add(B(w*.7,.75,.006),M(0xa57c4a,.6),0,1.5,.063);  
-  add(B(w*.7,.75,.006),M(0xa57c4a,.6),0,.55,.063);  
-  // Poignée du bon côté selon poussant/tirant gauche ou droite  
-  const hx=isL?(w/2-.08):(-w/2+.08);  
-  add(C(.01,.1),CH,hx,1.02,.09).rotation.z=Math.PI/2  
- }  
- else if(t==='window'){const y=it.sill,fr=M(0xf5f5f3,.4);add(B(w+.08,1.28,.08),fr,0,y+.6,0);add(B(w-.04,1.16,.02),new THREE.MeshStandardMaterial({color:0xdff3ff,transparent:true,opacity:.6,roughness:0,metalness:.2,emissive:0xbfe3ff,emissiveIntensity:.7}),0,y+.6,.04);add(B(.03,1.2,.05),fr,0,y+.6,.045);add(B(w,.03,.05),fr,0,y+.6,.045);add(B(w+.16,.03,.14),fr,0,y-.03,.03)}  
- return g}  
-  
-/* ---------- Géométrie et règles de placement ---------- */  
-const q=it=>((Math.round(it.rot/(Math.PI/2))%4)+4)%4,ov=(a,b)=>a.x0<b.x1-1e-6&&a.x1>b.x0+1e-6&&a.z0<b.z1-1e-6&&a.z1>b.z0+1e-6;  
-function rect(it){const sw=q(it)%2,hx=(sw?it.d:it.w)/2,hz=(sw?it.w:it.d)/2;return{x0:it.x-hx,x1:it.x+hx,z0:it.z-hz,z1:it.z+hz}}  
-function contact(it){const k=q(it),r=rect(it),hx=(r.x1-r.x0)/2,hz=(r.z1-r.z0)/2;it.x=Math.max(hx,Math.min(L-hx,it.x));it.z=Math.max(hz,Math.min(W-hz,it.z));if(k===0)it.z=hz;else if(k===1)it.x=hx;else if(k===3)it.x=L-hx;else it.z=W-hz}  
-function snap(it){const a=[it.z,it.x,L-it.x,W-it.z],m=Math.min(...a);it.rot=[0,Math.PI/2,-Math.PI/2,Math.PI][a.indexOf(m)];contact(it)}  
-const wr=(wl,p,hw,d)=>wl===0?{x0:p-hw,x1:p+hw,z0:0,z1:d}:wl===2?{x0:p-hw,x1:p+hw,z0:W-d,z1:W}:wl===1?{x0:L-d,x1:L,z0:p-hw,z1:p+hw}:{x0:0,x1:d,z0:p-hw,z1:p+hw};  
-const wp=(wl,p)=>[[p,0],[L,p],[p,W],[0,p]][wl];  
-function obstacles(){const o=[];ops.forEach(p=>{  
- const isOut=p.kind==='door'&&(p.swing==='tg'||p.swing==='td');  
- // Si la porte s'ouvre vers l'extérieur, seul le passage (15 cm) est bloqué à l'intérieur  
- const depth=p.kind==='door'?(isOut?.15:p.w):.15;  
- const r=wr(p.wall,p.pos,p.w/2,depth);r.t=p.kind==='door'?0:p.sill;r.why=p.kind;o.push(r)});  
- if(heat.on){const r=wr(heat.wall,heat.pos,.3,.15);r.t=0;r.why='heat';o.push(r)}return o}  
-function bad(it,ref){const r=rect(it),e=1e-6;if(r.x0<-e||r.z0<-e||r.x1>L+e||r.z1>W+e)return'room';  
- for(const o of items)if(o!==ref&&ov(r,rect(o)))return'item';  
- for(const o of obstacles())if(TOP[it.type]>o.t&&ov(r,o))return o.why;return''}  
-function autoPlace(it,ref){for(const w of [0,3,1,2])for(let t=0;t<=(w%2?W:L)+.001;t+=.05){it.rot=ROT[w];it.x=w===1?L:w%2?0:t;it.z=w===2?W:w%2?t:0;contact(it);if(!bad(it,ref))return true}return false}  
-function openOK(o){const len=o.wall%2?W:L;if(o.w<.3||o.pos-o.w/2<.02||o.pos+o.w/2>len-.02)return false;return!ops.some(p=>p!==o&&p.wall===o.wall&&Math.abs(p.pos-o.pos)<(p.w+o.w)/2)}  
-function mk(it){if(it.g)scene.remove(it.g);it.g=build(it);scene.add(it.g);it.g.position.set(it.x,0,it.z);it.g.rotation.y=it.rot}  
-function mkOp(o){if(o.g)scene.remove(o.g);o.d=o.d||(o.kind==='door'?.06:.08);const d=o.d,p=o.pos;o.g=build({type:o.kind,w:o.w,d,sill:o.sill,swing:o.swing||'pg',elec:0});scene.add(o.g);const c=[[p,d/2],[L-d/2,p],[p,W-d/2],[d/2,p]][o.wall];o.g.position.set(c[0],0,c[1]);o.g.rotation.y=ROT[o.wall]}  
-function revalidate(){items.slice().forEach(it=>{if(bad(it,it)){if(!autoPlace(it,it)){scene.remove(it.g);items.splice(items.indexOf(it),1);toast(NAME[it.slot]+' retiré : plus de place')}else mk(it)}});refresh()}  
-  
-/* ---------- Étape 2 : ouvertures ---------- */  
-function addOp(kind){const o={kind,wall:2,pos:0,w:kind==='door'?.83:.8,sill:1,swing:'pg'};let ok=false;  
- for(const wl of [2,0,1,3]){o.wall=wl;for(let p=o.w/2+.1;p<=(wl%2?W:L)-o.w/2-.1&&!ok;p+=.1){o.pos=p;ok=openOK(o)}if(ok)break}  
- if(!ok){toast('Plus de place sur les murs');return}ops.push(o);mkOp(o);renderOps();revalidate()}  
-function editOp(o,f,v){const old={wall:o.wall,pos:o.pos,w:o.w,sill:o.sill,swing:o.swing};  
- if(f==='wall'){o.wall=+v;o.pos=(o.wall%2?W:L)/2}  
- else if(f==='swing'){o.swing=v}  
- else if(f==='sill'){o.sill=Math.max(0,Math.min(+v/100,H-1.3))}  
- else{o[f]=+v/100}  
- if(!openOK(o)){Object.assign(o,old);toast('Position impossible : hors du mur ou sur une autre ouverture')}else{mkOp(o);revalidate()}renderOps()}  
-function renderOps(){const l=$('oplist');l.innerHTML='';ops.forEach((o,i)=>{const d=document.createElement('div');d.className='op';  
- d.innerHTML=`<b>${o.kind==='door'?'Porte':'Fenêtre'} ${i+1}</b><button class="x">Supprimer</button><div class="row2"><div><label>Mur</label><select data-f="wall">${WN.map((n,k)=>`<option value="${k}"${k===o.wall?' selected':''}>${n}</option>`).join('')}</select></div><div><label>Position du centre (cm)</label><input type="number" data-f="pos" step="5" value="${Math.round(o.pos*100)}"></div><div><label>Largeur (cm)</label><input type="number" data-f="w" step="5" value="${Math.round(o.w*100)}"></div>${o.kind==='door'?`<div><label>Sens d'ouverture</label><select data-f="swing">${Object.entries(SWING).map(([k,v])=>`<option value="${k}"${k===(o.swing||'pg')?' selected':''}>${v}</option>`).join('')}</select></div>`:`<div><label>Hauteur d’allège (cm)</label><input type="number" data-f="sill" step="5" value="${Math.round(o.sill*100)}"></div>`}</div>`;  
- d.querySelectorAll('[data-f]').forEach(e=>e.onchange=()=>editOp(o,e.dataset.f,e.value));d.querySelector('.x').onclick=()=>{scene.remove(o.g);ops.splice(i,1);renderOps();revalidate()};l.appendChild(d)})}  
-  
-/* ---------- Étape 3 : chauffage existant et conduites ---------- */  
-function updHeat(){const t=$('hsel').value,old={...heat};heat.on=t!=='none';heat.type=t;heat.wall=+$('hwall').value;heat.pos=(+$('hpos').value||100)/100;$('hrow').style.display=heat.on?'grid':'none';  
- if(heat.on){const o={wall:heat.wall,pos:heat.pos,w:.6};if(!openOK(o)){Object.assign(heat,old);$('hsel').value=old.on?old.type:'none';$('hwall').value=old.wall;$('hpos').value=Math.round(old.pos*100);toast('Position impossible pour le chauffage');$('hrow').style.display=heat.on?'grid':'none'}}  
- if(heatG)scene.remove(heatG);heatG=null;if(heat.on){heatG=build({type:'oldrad',w:.6,d:.1,elec:heat.type==='elec'});scene.add(heatG);const c=[[heat.pos,.05],[L-.05,heat.pos],[heat.pos,W-.05],[.05,heat.pos]][heat.wall];heatG.position.set(c[0],0,c[1]);heatG.rotation.y=ROT[heat.wall]}revalidate()}  
-function setFeed(cx,cz){cx=Math.max(0,Math.min(L,cx));cz=Math.max(0,Math.min(W,cz));const d=[cz,L-cx,W-cz,cx],w=d.indexOf(Math.min(...d)),m=.1;  
- feed=w===0?{x:Math.max(m,Math.min(L-m,cx)),z:m,w}:w===1?{x:L-m,z:Math.max(m,Math.min(W-m,cz)),w}:w===2?{x:Math.max(m,Math.min(L-m,cx)),z:W-m,w}:{x:m,z:Math.max(m,Math.min(W-m,cz)),w};  
- $('feedtxt').textContent='Arrivée placée sur le mur '+WN[w]+'.';refresh()}  
-  
-/* ---------- Équipements (étapes 4 à 7) ---------- */  
-const DEFS=[['shower',4,()=>({type:'shower',w:+$('sl').value/100,d:+$('sw2').value/100,gw:+$('gw').value/100,gh:+$('gh').value/100,gside:+$('gside').value,mix:+$('mix').value})],['bath',4,()=>({type:'bath',w:1.7,d:.7})],  
- ['vanity',5,()=>{const w=+$('vw').value/100,c=$('vcfg').value;return{type:'vanity',w,d:.47,dbl:c==='auto'?w>=1.2:c==='2',mir:$('vmir').checked,fin:$('vfin').value}}],  
- ['wc',6,()=>{const s=$('wtype').value==='wc';return{type:$('wtype').value,w:s?.4:.38,d:s?.55:.68,shelf:$('i_wcshelf').checked}}],['rad',7,()=>({type:'rad',w:+$('rw2').value/100,d:.1,elec:$('rtype').value==='elec'})]];  
-function applyAll(){DEFS.forEach(([slot,st,f])=>{let it=items.find(i=>i.slot===slot);  
- if(st>maxStep||!$('i_'+slot).checked){if(it){scene.remove(it.g);items.splice(items.indexOf(it),1)}return}  
- const p=f();if(!it){it={slot,x:0,z:0,rot:0,...p};if(!autoPlace(it)){toast('Pas de place pour : '+NAME[p.type]);return}items.push(it);mk(it);return}  
- const o={...it,...p};contact(o);if(bad(o,it)&&!autoPlace(o,it)){toast('Pas de place avec cette taille : réduisez-la');return}Object.assign(it,o);mk(it)});refresh()}  
-  
-/* ---------- Plomberie, métré, schéma ---------- */  
-const ports=it=>{const d=it.d,z=-d/2+.05,t=it.type,p={};  
- if(t==='vanity'){p.cold=[-.08,z];p.hot=[.08,z];p.dr=[0,z+.02]}else if(t==='shower'){const m=it.mix*(it.w/2-.22);p.cold=[m-.08,z];p.hot=[m+.08,z];p.dr=[0,0]}  
- else if(t==='wc'){p.cold=[0,z+.05];p.dw=[0,z+.12]}else if(t==='wc2'){p.cold=[.1,z];p.dw=[0,z+.08]}else if(t==='bath'){p.cold=[-it.w/2+.1,-.08];p.hot=[-it.w/2+.1,.08];p.dr=[-it.w/2+.1,0]}  
- else if(t==='rad'){if(it.elec)p.elec=[0,0];else p.hot=[-it.w/2+.02,0]}  
- const c=Math.cos(it.rot),s=Math.sin(it.rot),o={};for(const k in p)o[k]=[it.x+p[k][0]*c+p[k][1]*s,it.z-p[k][0]*s+p[k][1]*c];return o}  
-const LANE={cold:.05,hot:.09,dr:.13,dw:.18},PP=()=>2*(L+W);  
-const wallOf=(x,z)=>{const d=[z,L-x,W-z,x];return d.indexOf(Math.min(...d))};  
-const sAt=(x,z)=>{const w=wallOf(x,z);return w===0?x:w===1?L+z:w===2?L+W+(L-x):2*L+W+(W-z)};  
-const ptAt=(s,n)=>{const p=PP();s=((s%p)+p)%p;return s<L?[s,n]:s<L+W?[L-n,s-L]:s<2*L+W?[L-(s-L-W),W-n]:[n,W-(s-2*L-W)]}  
-const cornerPt=(c,n)=>[[n,n],[L-n,n],[L-n,W-n],[n,W-n]][c];  
-const doorsS=()=>ops.filter(o=>o.kind==='door').map(o=>({s:[o.pos,L+o.pos,L+W+L-o.pos,2*L+W+W-o.pos][o.wall],h:o.w/2+.02}));  
-function crosses(s1,dir,d,ds){const p=PP();for(let t=0;t<=d;t+=.03){const s=((s1+dir*t)%p+p)%p;for(const q of ds){let e=Math.abs(s-q.s);e=Math.min(e,p-e);if(e<q.h)return true}}return false}  
-function routeOf(Pt,k){const n=LANE[k],p=PP(),s0=sAt(feed.x,feed.z),s2=sAt(Pt[0],Pt[1]),d1=((s2-s0)%p+p)%p,d2=p-d1,ds=doorsS();  
- const ok1=!crosses(s0,1,d1,ds),ok2=!crosses(s0,-1,d2,ds);let dir=d1<=d2?1:-1,cross=false;  
- if(ok1&&!ok2)dir=1;else if(!ok1&&ok2)dir=-1;else if(!ok1&&!ok2)cross=true;  
- const d=dir===1?d1:d2,pts=[ptAt(s0,n)];  
- const cs=[0,L,L+W,2*L+W].map((c,i)=>({i,t:dir===1?((c-s0)%p+p)%p:((s0-c)%p+p)%p})).filter(c=>c.t>1e-6&&c.t<d-1e-6).sort((a,b)=>a.t-b.t);  
- cs.forEach(c=>pts.push(cornerPt(c.i,n)));const e=ptAt(s2,n);pts.push(e);pts.push(Pt);  
- return{pts,s0,dir,d,sp:Math.abs(Pt[0]-e[0])+Math.abs(Pt[1]-e[1]),cross}}  
-function net(){const p=PP(),Mm=Math.round(p*100),R={};  
- ['cold','hot','dr','dw'].forEach(k=>R[k]={m:new Uint8Array(Mm),n:0,sp:0,dirs:new Set(),cross:0});  
- items.forEach(it=>{const P=ports(it);for(const k in R){if(!P[k])continue;const r=routeOf(P[k],k),o=R[k];o.n++;o.sp+=r.sp;if(r.cross)o.cross++;if(r.d>.02)o.dirs.add(r.dir);  
-  for(let t=0;t<=r.d;t+=.01)o.m[Math.min(Mm-1,Math.floor((((r.s0+r.dir*t)%p)+p)%p*100))]=1}});  
- const cor=[0,L,L+W,2*L+W].map(c=>Math.round(c*100)%Mm);  
- for(const k in R){const o=R[k];o.len=o.m.reduce((a,b)=>a+b,0)/100+o.sp;const E=Math.max(o.dirs.size,1);  
-  o.corners=o.n?cor.filter(c=>o.m[(c+Mm-2)%Mm]&&o.m[(c+2)%Mm]).length:0;o.te=o.n?Math.max(0,o.n-E+(E===2?1:0)):0;o.coude=o.n?o.corners+E+1:0}  
- return R}  
-const stops=()=>items.reduce((a,it)=>a+(it.type==='vanity'?(it.dbl?4:2):it.type==='shower'||it.type==='bath'?2:/^wc/.test(it.type)?1:it.type==='rad'&&!it.elec?2:0),0);  
-const hooks=()=>Math.max(0,Math.round(+($('npat')||{value:0}).value||0));  
-function dossier(v){const N=net(),T=CFG.tube,f=x=>(x*1.15).toFixed(1),op=ops.reduce((s,o)=>s+o.w*(o.kind==='door'?2.04:1.2),0);  
- const LB={cold:'Eau froide ('+T+' Ø16)',hot:'Eau chaude ('+T+' Ø16)',dr:'Évacuation PVC Ø40',dw:'Évacuation PVC Ø100 (WC)'};  
- const l=['DOSSIER TECHNIQUE - SIMULATION SALLE DE BAIN (implantation indicative, pas un plan final)','',  
- 'CLIENT : '+v('f_nom')+' '+v('f_prenom'),'Adresse : '+v('f_adr')+' '+v('f_cp')+' '+v('f_ville'),'Téléphone : '+v('f_tel'),'E-mail : '+v('f_mail'),'Projet : '+v('f_proj'),'Message : '+v('f_msg'),'',  
- 'PIÈCE : '+Math.round(L*100)+' x '+Math.round(W*100)+' cm, hauteur '+Math.round(H*100)+' cm, surface '+(L*W).toFixed(1)+' m²','OUVERTURES :',  
- ...ops.map(o=>'- '+(o.kind==='door'?'Porte ('+SWING[o.swing||'pg']+')':'Fenêtre')+' mur '+WN[o.wall]+', centre à '+Math.round(o.pos*100)+' cm, largeur '+Math.round(o.w*100)+' cm'+(o.kind==='window'?', allège '+Math.round(o.sill*100)+' cm':'')),  
- 'ARRIVÉE DES CONDUITES : mur '+WN[feed.w]+' (x '+Math.round(feed.x*100)+' cm, z '+Math.round(feed.z*100)+' cm)',  
- 'CHAUFFAGE EXISTANT : '+(heat.on?(heat.type==='elec'?'électrique':'à eau')+', mur '+WN[heat.wall]+', centre à '+Math.round(heat.pos*100)+' cm':'non'),'','ÉQUIPEMENTS :',  
- ...items.map(it=>'- '+NAME[it.type]+' '+Math.round(it.w*100)+' x '+Math.round(it.d*100)+' cm, placé contre le mur '+WN[[0,3,2,1][q(it)]]+(it.type==='shower'?', paroi '+Math.round(it.gw*100)+' x '+Math.round(it.gh*100)+' cm ('+(it.gside===-1?'à gauche':'à droite')+'), mitigeur '+['à gauche','au centre','à droite'][it.mix+1]:it.type==='vanity'?', '+(it.dbl?'double':'simple')+' vasque, finition '+FIN[it.fin][0]+(it.mir?', avec miroir':', sans miroir'):it.type==='wc'?(it.shelf?', avec coffrage mi-hauteur et tablette bois':''):it.type==='rad'?(it.elec?', électrique (230 V)':', sur le réseau (eau chaude)'):'')),'',  
- 'RÉSEAUX (cheminement le long des murs, longueurs +15 % de chute, hors colonnes montantes) :',  
- ...['cold','hot','dr','dw'].filter(k=>N[k].n).map(k=>'- '+LB[k]+' : '+f(N[k].len)+' m · '+N[k].n+' piquage(s) · coudes 90° : '+N[k].coude+' · tés : '+N[k].te+' · coudes muraux/sorties : '+N[k].n+(N[k].cross?' · ATTENTION : traverse la porte (passage sous seuil ou en dalle)':'')),  
- 'Type de tube : '+T+' (à définir selon le chantier)','','FOURNITURES :','- Robinets d’arrêt : '+stops()+' u','- Patères : '+hooks()+' u',  
- '- Carrelage sol : '+(L*W*1.1).toFixed(1)+' m² (+10 %) · Revêtement murs : '+(Math.max(0,2*(L+W)*H-op)*1.1).toFixed(1)+' m² (+10 %)',  
- '- Finitions : sol '+$('tf').selectedOptions[0].text+', murs '+$('tw').selectedOptions[0].text,'','Estimation à valider sur place par un professionnel.'];  
- return l.join('\n')}  
-function saveState(){try{localStorage.setItem('lcdm_sdb',JSON.stringify({L,W,H,ops:ops.map(o=>({kind:o.kind,wall:o.wall,pos:o.pos,w:o.w,sill:o.sill,swing:o.swing})),feed,heat,step,maxStep}))}catch(_){}}  
-function refresh(){const ul=$('bill'),add=(a,b)=>ul.insertAdjacentHTML('beforeend',`<li><span>${a}</span><b>${b}</b></li>`);ul.innerHTML='';  
- $('surf').textContent='Surface : '+(L*W).toFixed(1)+' m²';  
- const op=ops.reduce((s,o)=>s+o.w*(o.kind==='door'?2.04:1.2),0);add('Surface au sol',(L*W).toFixed(1)+' m²');add('Carrelage sol (+10 % de chute)',(L*W*1.1).toFixed(1)+' m²');add('Revêtement murs (+10 % de chute)',(Math.max(0,2*(L+W)*H-op)*1.1).toFixed(1)+' m²');  
- items.forEach(it=>add(NAME[it.type],Math.round(it.w*100)+' × '+Math.round(it.d*100)+' cm'+(it.type==='rad'?(it.elec?' · électrique':' · eau chaude'):'')));  
- if(heat.on)add('Chauffage existant',heat.type==='elec'?'électrique':'eau chaude');  
- if(items.length){add('Robinets d’arrêt',stops()+' u');add('Patères',hooks()+' u')}  
- saveState();  
- if(view==='plan')drawPlan()}  
-function save(cv,name){cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)},'image/png')}  
-function dl3d(){const pv=view,w0=gl.clientWidth||1,h0=gl.clientHeight||1;setView('3d');const W2=3200,H2=Math.round(W2*h0/w0);  
- rend.setPixelRatio(1);rend.setSize(W2,H2);persp.aspect=W2/H2;persp.updateProjectionMatrix();rend.render(scene,persp);  
- const c=document.createElement('canvas');c.width=W2;c.height=H2+190;const g=c.getContext('2d');g.drawImage(rend.domElement,0,0);  
- g.fillStyle='#33555F';g.fillRect(0,H2,W2,190);const lg=$('logo');if(lg&&lg.complete)g.drawImage(lg,30,H2+15,160,160);  
- g.fillStyle='#fff';g.font='bold 56px "Segoe UI",Arial,sans-serif';g.fillText('Le Coup de Main · Services à domicile',230,H2+80);g.font='38px "Segoe UI",Arial,sans-serif';g.fillText(CFG.email+'  ·  www.lecoupdemain-services.fr  ·  '+CFG.tel,230,H2+135);  
- g.font='italic 30px "Segoe UI",Arial,sans-serif';g.fillStyle='#ECE3BD';g.fillText('Implantation indicative, en aucun cas un plan définitif.',230,H2+174);  
- rend.setPixelRatio(Math.min(devicePixelRatio,2));resize();save(c,'ma-salle-de-bain-3d.png');setView(pv)}  
-function dlPlan(){const pv=view;setView('plan');drawPlan(3);save(pc,'schema-technique.png');drawPlan();setView(pv)}  
-  
-let pm={s:1,ox:0,oy:0};  
-function drawPlan(k){const dpr=k||Math.min(devicePixelRatio,2),cw=pc.clientWidth,ch=pc.clientHeight;pc.width=cw*dpr;pc.height=ch*dpr;const g=pc.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);  
- const s=Math.min((cw-160)/L,(ch-200)/W),ox=(cw-L*s)/2,oy=(ch-W*s)/2-10;pm={s,ox,oy};const X=x=>ox+x*s,Z=z=>oy+z*s,BG='#12263f',FG='#e8f0fb';  
- g.fillStyle=BG;g.fillRect(0,0,cw,ch);g.strokeStyle='rgba(140,180,230,.13)';g.lineWidth=1;  
- for(let x=0;x<=L+1e-6;x+=.1){g.beginPath();g.moveTo(X(x),Z(0));g.lineTo(X(x),Z(W));g.stroke()}for(let z=0;z<=W+1e-6;z+=.1){g.beginPath();g.moveTo(X(0),Z(z));g.lineTo(X(L),Z(z));g.stroke()}  
- g.strokeStyle=FG;g.lineWidth=6;g.strokeRect(X(0),Z(0),L*s,W*s);  
- ops.forEach(o=>{const P=wp(o.wall,o.pos);g.save();g.translate(X(P[0]),Z(P[1]));g.rotate([0,Math.PI/2,Math.PI,-Math.PI/2][o.wall]);const hw=o.w/2*s,ws=o.w*s;g.fillStyle=BG;g.fillRect(-hw,-5,2*hw,10);  
-  if(o.kind==='door'){  
-   const sw=o.swing||'pg',isL=sw==='pg'||sw==='tg',isIn=sw==='pg'||sw==='pd';  
-   const hx=isL?-hw:hw,dirY=isIn?1:-1;  
-   g.strokeStyle=FG;g.lineWidth=2;g.beginPath();g.moveTo(hx,0);g.lineTo(hx,dirY*ws);g.stroke();  
-   g.setLineDash([4,4]);g.lineWidth=1.2;g.beginPath();  
-   if(isL&&isIn)g.arc(hx,0,ws,0,Math.PI/2);  
-   else if(!isL&&isIn)g.arc(hx,0,ws,Math.PI/2,Math.PI);  
-   else if(isL&&!isIn)g.arc(hx,0,ws,-Math.PI/2,0);  
-   else g.arc(hx,0,ws,Math.PI,Math.PI*1.5);  
-   g.stroke();g.setLineDash([])  
-  }  
-  else{g.strokeStyle='#8fd0ff';g.lineWidth=1.5;[-3,0,3].forEach(y=>{g.beginPath();g.moveTo(-hw,y);g.lineTo(hw,y);g.stroke()})}g.restore()});  
- g.font='11px sans-serif';g.textAlign='center';  
- if(heat.on){const r=wr(heat.wall,heat.pos,.3,.12);g.setLineDash([5,4]);g.strokeStyle='#ff9a8a';g.lineWidth=2;g.strokeRect(X(r.x0),Z(r.z0),(r.x1-r.x0)*s,(r.z1-r.z0)*s);g.setLineDash([]);g.fillStyle='#ff9a8a';g.fillText('Chauffage existant',X((r.x0+r.x1)/2),Z((r.z0+r.z1)/2)+(heat.wall===2?-8:heat.wall===0?18:4))}  
- items.forEach(it=>{const r=rect(it);g.fillStyle='rgba(255,255,255,.08)';g.strokeStyle='#d2b36a';g.lineWidth=2;g.fillRect(X(r.x0),Z(r.z0),(r.x1-r.x0)*s,(r.z1-r.z0)*s);g.strokeRect(X(r.x0),Z(r.z0),(r.x1-r.x0)*s,(r.z1-r.z0)*s);g.fillStyle=FG;g.fillText(NAME[it.type],X(it.x),Z(it.z)+4)});  
- const line=(pts,col,w,dash)=>{g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.beginPath();pts.forEach((p,i)=>i?g.lineTo(X(p[0]),Z(p[1])):g.moveTo(X(p[0]),Z(p[1])));g.stroke();g.setLineDash([])};  
- const LC={cold:'#4aa8ff',hot:'#ff6b5b',dr:'#b8bec6',dw:'#b8bec6'},LW={cold:2.5,hot:2.5,dr:3,dw:5};  
- items.forEach(it=>{const P=ports(it);for(const k of ['dw','dr','cold','hot']){if(!P[k])continue;const r=routeOf(P[k],k);line(r.pts,r.cross?'#ffaa00':LC[k],LW[k],r.cross?[4,4]:(k==='dr'||k==='dw'?[8,5]:null))}  
-  for(const k in P){g.fillStyle=k==='cold'?'#4aa8ff':k==='hot'?'#ff6b5b':k==='elec'?'#ffd84a':'#b8bec6';g.beginPath();g.arc(X(P[k][0]),Z(P[k][1]),k==='elec'?6:3.5,0,7);g.fill();if(k==='elec'){g.fillStyle='#ffd84a';g.fillText('230 V',X(P[k][0]),Z(P[k][1])-9)}}});  
- g.fillStyle='#d2b36a';g.beginPath();g.arc(X(feed.x),Z(feed.z),9,0,7);g.fill();g.strokeStyle=BG;g.lineWidth=2;g.stroke();g.fillStyle=FG;g.font='bold 11px sans-serif';g.fillText('Arrivée des conduites',X(feed.x)+(feed.x>L/2?-70:70),Z(feed.z)+(feed.z>W/2?-14:22));  
- g.font='bold 13px sans-serif';g.strokeStyle=FG;g.fillStyle=FG;g.lineWidth=1;  
- const hd=(zp,t,up)=>{g.beginPath();g.moveTo(X(0),zp);g.lineTo(X(L),zp);g.moveTo(X(0),zp-4);g.lineTo(X(0),zp+4);g.moveTo(X(L),zp-4);g.lineTo(X(L),zp+4);g.stroke();g.fillText(t,X(L/2),zp+(up?-6:17))};  
- const vd=(xp,t,left)=>{g.beginPath();g.moveTo(xp,Z(0));g.lineTo(xp,Z(W));g.moveTo(xp-4,Z(0));g.lineTo(xp+4,Z(0));g.moveTo(xp-4,Z(W));g.lineTo(xp+4,Z(W));g.stroke();g.save();g.translate(xp+(left?-8:17),Z(W/2));g.rotate(-Math.PI/2);g.fillText(t,0,0);g.restore()};  
- hd(Z(0)-18,'Mur A · '+Math.round(L*100)+' cm',1);hd(Z(W)+18,'Mur C · '+Math.round(L*100)+' cm',0);vd(X(0)-18,'Mur D · '+Math.round(W*100)+' cm',1);vd(X(L)+18,'Mur B · '+Math.round(W*100)+' cm',0);  
- {const bx=cw-262,by=ch-86;g.fillStyle='rgba(255,255,255,.07)';g.strokeStyle='rgba(232,240,251,.35)';g.lineWidth=1;g.fillRect(bx,by,248,74);g.strokeRect(bx,by,248,74);const lg=$('logo');if(lg&&lg.complete)g.drawImage(lg,bx+6,by+7,60,60);  
-  g.textAlign='left';g.fillStyle=FG;g.font='bold 12px sans-serif';g.fillText('Le Coup de Main',bx+74,by+22);g.font='10.5px sans-serif';g.fillText('contact@lecoupdemain-services.fr',bx+74,by+40);g.fillText('www.lecoupdemain-services.fr',bx+74,by+56);g.textAlign='center'}  
- g.textAlign='left';g.font='bold 14px sans-serif';g.fillText('Schéma technique, implantation indicative',14,24);g.font='12px sans-serif';  
- [['#4aa8ff','Eau froide'],['#ff6b5b','Eau chaude'],['#b8bec6','Évacuation (gros trait : Ø100 WC)'],['#ffaa00','Traversée de porte (passage sous seuil)'],['#ffd84a','Alimentation électrique 230 V']].forEach((l,i)=>{g.fillStyle=l[0];g.fillRect(14,ch-102+i*18,24,3);g.fillStyle=FG;g.fillText(l[1],46,ch-97+i*18)})}  
-pc.addEventListener('pointerdown',e=>{if(step!==3)return;const r=pc.getBoundingClientRect();setFeed((e.clientX-r.left-pm.ox)/pm.s,(e.clientY-r.top-pm.oy)/pm.s)});  
-  
-/* ---------- Vues, caméra, glisser-déposer ---------- */  
-const HINT={plan:'Schéma technique : les murs sont nommés A, B, C, D','3d':'Glissez un équipement pour le déplacer · Double-clic pour pivoter à 90° · Molette pour zoomer',top:'Vue de dessus · Glissez un équipement pour le déplacer'};  
-function setView(v){view=v;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));gl.style.display=v==='plan'?'none':'block';pc.style.display=v==='plan'?'block':'none';$('hint').textContent=step===3&&v==='plan'?'Cliquez sur le schéma pour placer l’arrivée des conduites':HINT[v];cam=v==='top'?ortho:persp;resize()}  
-function resize(){const w=gl.clientWidth||1,h=gl.clientHeight||1;rend.setSize(w,h);const a=w/h;persp.aspect=a;persp.updateProjectionMatrix();const hh=Math.max(W/2+.5,(L/2+.5)/a);ortho.left=-hh*a;ortho.right=hh*a;ortho.top=hh;ortho.bottom=-hh;ortho.updateProjectionMatrix();if(view==='plan')drawPlan()}  
-function loop(){requestAnimationFrame(loop);if(view==='plan')return;if(view==='top'){ortho.position.set(L/2,12,W/2);ortho.up.set(0,0,-1);ortho.lookAt(L/2,0,W/2)}else{const t=new THREE.Vector3(L/2,.8,W/2);persp.position.set(t.x+sph.r*Math.sin(sph.p)*Math.sin(sph.t),t.y+sph.r*Math.cos(sph.p),t.z+sph.r*Math.sin(sph.p)*Math.cos(sph.t));persp.up.set(0,1,0);persp.lookAt(t)}rend.render(scene,cam)}  
-const ray=new THREE.Raycaster(),fp=new THREE.Plane(new THREE.Vector3(0,1,0),0),v2=new THREE.Vector2();  
-const ndc=e=>{const r=gl.getBoundingClientRect();v2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(v2,cam)},fpt=()=>{const p=new THREE.Vector3();return ray.ray.intersectPlane(fp,p)?p:null};  
-  
-gl.addEventListener('dblclick',e=>{if(step<4)return;ndc(e);const hit=ray.intersectObjects(items.map(i=>i.g),true);  
- if(hit.length){let o=hit[0].object;while(o.parent!==scene)o=o.parent;const it=items.find(i=>i.g===o);  
-  if(it){const oldR=it.rot,oldX=it.x,oldZ=it.z;it.rot=(it.rot+Math.PI/2)%(Math.PI*2);contact(it);  
-   if(bad(it,it)){it.rot=oldR;it.x=oldX;it.z=oldZ;toast('Rotation impossible à cet endroit')}  
-   else{mk(it);refresh();toast(NAME[it.type]+' pivoté à 90°')}}}});  
-  
-gl.addEventListener('pointerdown',e=>{ndc(e);const hit=step>=4?ray.intersectObjects(items.map(i=>i.g),true):[];  
- if(hit.length){let o=hit[0].object;while(o.parent!==scene)o=o.parent;const it=items.find(i=>i.g===o),p=fpt();drag={it,dx:p?it.x-p.x:0,dz:p?it.z-p.z:0}}else if(view==='3d')orb={x:e.clientX,y:e.clientY};gl.setPointerCapture(e.pointerId)});  
-gl.addEventListener('pointermove',e=>{if(drag){ndc(e);const p=fpt();if(p){const c={...drag.it,x:p.x+drag.dx,z:p.z+drag.dz};snap(c);const r=bad(c,drag.it);if(!r){Object.assign(drag.it,{x:c.x,z:c.z,rot:c.rot});drag.it.g.position.set(c.x,0,c.z);drag.it.g.rotation.y=c.rot;refresh()}else toast(MSG[r])}}  
- else if(orb){sph.t-=(e.clientX-orb.x)*.006;sph.p=Math.max(.25,Math.min(1.5,sph.p-(e.clientY-orb.y)*.005));orb={x:e.clientX,y:e.clientY}}});  
-const end=()=>{drag=null;orb=null};gl.addEventListener('pointerup',end);gl.addEventListener('pointercancel',end);  
-gl.addEventListener('wheel',e=>{e.preventDefault();sph.r=Math.max(2,Math.min(14,sph.r*(1+e.deltaY*.001)))},{passive:false});addEventListener('resize',resize);  
-  
-/* ---------- Plein écran et Reset ---------- */  
-$('fsBtn').onclick=()=>{if(!document.fullscreenElement){$('main').requestFullscreen().catch(()=>{})}else{document.exitFullscreen()}};  
-$('resetBtn').onclick=()=>{localStorage.removeItem('lcdm_sdb');location.reload()};  
-  
-/* ---------- Parcours et envoi ---------- */  
-function go(n){if(n>step&&step===2&&!ops.some(o=>o.kind==='door')){toast('Merci d’ajouter la porte avant de continuer');return}  
- step=n;maxStep=Math.max(maxStep,n);document.querySelectorAll('.stp').forEach(p=>p.classList.toggle('on',+p.dataset.s===n));$('pbar').style.width=n/9*100+'%';$('stTxt').textContent='Étape '+n+' sur 9 · '+STL[n-1];  
- $('bprev').disabled=n===1;$('bnext').textContent=n<9?'Suivant':'Envoyer ma demande';$('sc').scrollTop=0;setView(n<=3?'plan':'3d');applyAll()}  
-function rebuild(){L=Math.max(1,Math.min(8,(+$('rl').value||300)/100));W=Math.max(1,Math.min(8,(+$('rw').value||240)/100));H=Math.max(2,Math.min(3.2,(+$('rh').value||250)/100));  
- buildRoom();ops.forEach(o=>{const len=o.wall%2?W:L;o.pos=Math.min(o.pos,len-o.w/2-.02);mkOp(o)});setFeed(feed.x,feed.z);updHeat();renderOps();resize()}  
-async function sendProj(){const v=i=>($(i).value||'').trim();  
- if(!v('f_nom')||!v('f_prenom')||!v('f_tel')||!v('f_mail')){toast('Merci de renseigner nom, prénom, téléphone et e-mail');return}  
- if(!$('f_ok').checked){toast('Merci de cocher la case de confirmation');return}  
- const txt=dossier(v),sub='Simulation salle de bain - '+v('f_nom')+' '+v('f_prenom');$('bnext').disabled=true;$('bnext').textContent='Envoi en cours…';  
- try{const r=await fetch(CFG.form,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({_subject:sub,nom:v('f_nom')+' '+v('f_prenom'),email:v('f_mail'),telephone:v('f_tel'),message:txt})});  
-  if(!r.ok)throw new Error('http');$('done').style.display='block';$('bnext').textContent='Demande envoyée';$('sc').scrollTop=$('sc').scrollHeight}  
- catch(e){$('bnext').disabled=false;$('bnext').textContent='Envoyer ma demande';try{await navigator.clipboard.writeText(txt)}catch(_){}  
-  toast('Envoi automatique impossible : votre messagerie va s’ouvrir (dossier copié, collez-le si besoin)');  
-  location.href='mailto:'+CFG.email+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(txt.slice(0,1400)+'\n[...] Dossier complet copié dans le presse-papiers.')}}  
-  
-$('bwa').onclick=()=>{const v=i=>($(i).value||'').trim();const txt=dossier(v);  
- window.open('https://wa.me/33646664222?text='+encodeURIComponent('Bonjour Julien, voici mon projet de salle de bain :\n\n'+txt),'_blank')};  
-  
-$('bnext').onclick=()=>step<9?go(step+1):sendProj();$('bprev').onclick=()=>go(step-1);  
-document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setView(b.dataset.v));document.querySelectorAll('.eq').forEach(e=>e.onchange=applyAll);  
-['rl','rw','rh'].forEach(i=>$(i).onchange=rebuild);$('tf').onchange=$('tw').onchange=buildRoom;['hsel','hwall','hpos'].forEach(i=>$(i).onchange=updHeat);  
-$('dl3').onclick=dl3d;$('dlp').onclick=dlPlan;$('bphoto').onclick=()=>window.open('https://wa.me/33646664222?text='+encodeURIComponent('Bonjour Julien, voici des photos de ma salle de bain actuelle, suite à ma simulation.'),'_blank');$('addDoor').onclick=()=>addOp('door');$('addWin').onclick=()=>addOp('window');  
-$('logo').onload=()=>{if(view==='plan')drawPlan()};  
-initScene();  
-try{const sv=JSON.parse(localStorage.getItem('lcdm_sdb'));if(sv){$('rl').value=Math.round(sv.L*100);$('rw').value=Math.round(sv.W*100);$('rh').value=Math.round(sv.H*100);rebuild();if(sv.ops){ops=sv.ops;ops.forEach(o=>mkOp(o));renderOps()}if(sv.feed)setFeed(sv.feed.x,sv.feed.z);if(sv.maxStep)maxStep=sv.maxStep;go(sv.step||1)}else{setFeed(.1,.1);go(1)}}catch(_){setFeed(.1,.1);go(1)}  
-</script>  
-</body>  
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Coup de Main · Simulateur Salle de bain & Buanderie</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{--bg:#ECE3BD;--panel:#fffdf7;--ink:#26363b;--mut:#62707a;--line:#d9cf9f;--acc:#33555F;--accink:#fff;--field:#f6f1dc;--warn:#fbf0d4;--warnink:#6b4e0b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a1b;--panel:#1a2325;--ink:#e9efee;--mut:#97a8a8;--line:#2f3d3f;--acc:#7fb0bc;--accink:#0d1b1f;--field:#223032;--warn:#3a321a;--warnink:#f0d99b}}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;overflow:hidden}
+#side{width:395px;min-width:395px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column}
+#head{padding:14px 18px 10px;border-bottom:1px solid var(--line)}
+.brand{font-size:12px;color:var(--acc);font-weight:700;letter-spacing:.02em}
+h1{font-size:17px;margin:2px 0 6px}
+#prog{height:5px;background:var(--line);border-radius:3px;overflow:hidden}#pbar{height:100%;background:var(--acc);transition:width .25s}
+#stl{font-size:12px;color:var(--mut);margin-top:5px;display:flex;justify-content:space-between;align-items:center}
+#resetBtn{background:none;border:none;color:var(--mut);text-decoration:underline;width:auto;padding:0;font-size:11px;font-weight:400}
+#sc{flex:1;overflow-y:auto;padding:14px 18px}
+.warn{background:var(--warn);color:var(--warnink);border-radius:10px;padding:9px 12px;font-size:12.5px;margin-bottom:12px}
+a{color:var(--acc)}
+h2{font-size:16px;margin-bottom:4px}
+p.h{font-size:13px;color:var(--mut);margin:4px 0 8px}
+label{font-size:12px;color:var(--mut);display:block;margin-bottom:3px}
+input,select,textarea,button{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+button{cursor:pointer;font-weight:600}button:hover{border-color:var(--acc)}
+.pri{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.mode-box{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 12px}
+.mode-btn{padding:12px 8px;border:2px solid var(--line);border-radius:10px;text-align:center;background:var(--field)}
+.mode-btn.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.fld{margin-top:8px}
+.chk{display:flex;gap:8px;align-items:center;margin-top:10px}.chk input{width:auto}.chk label{margin:0;color:var(--ink);font-size:13px}
+.op{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px}.op b{margin-right:8px}.op .x{width:auto;padding:3px 10px;font-size:12px}
+.stp{display:none}.stp.on{display:block}
+#bill{list-style:none;padding:0;font-size:12.5px;margin:8px 0}#bill li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding:4px 0}#bill b{white-space:nowrap}
+#foot{display:grid;grid-template-columns:1fr 2fr;gap:8px;padding:12px 18px;border-top:1px solid var(--line)}
+#main{flex:1;display:flex;flex-direction:column;min-width:0}
+#tabs{display:flex;gap:6px;padding:10px;background:var(--panel);border-bottom:1px solid var(--line);align-items:center}
+#tabs button{width:auto;padding:7px 12px;font-size:13px}#tabs button.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+#stage{flex:1;position:relative;min-height:0}
+#gl,#plan{position:absolute;inset:0;width:100%;height:100%;touch-action:none}#gl canvas{display:block}#plan{display:none}
+#hint{position:absolute;left:12px;bottom:12px;background:rgba(15,25,26,.82);color:#eee;padding:7px 12px;border-radius:8px;font-size:12px;pointer-events:none;max-width:80%}
+#fsBtn{position:absolute;top:12px;right:12px;background:rgba(15,25,26,.88);color:#fff;border:1px solid var(--line);padding:8px 14px;border-radius:8px;font-size:12.5px;cursor:pointer;z-index:30;width:auto}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#8a2b2b;color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:50;max-width:90vw;font-size:13px}
+body.fs #side{display:none!important}
+body.fs #main{position:fixed!important;inset:0!important;z-index:9999!important;width:100vw!important;height:100dvh!important;background:var(--bg)}
+@media (max-width:760px){body{flex-direction:column-reverse}#side{width:100%;min-width:0;height:54vh;border-right:0;border-top:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<div id="side">
+ <div id="head">
+  <div style="display:flex;gap:12px;align-items:center">
+   <!-- Remets ton code data:image/jpeg;base64,... dans src ci-dessous si besoin -->
+   <img id="logo" alt="Le Coup de Main" src="https://www.lecoupdemain-services.fr/logo.png" onerror="this.style.display='none'" width="52" height="52" style="border-radius:10px;flex:none">
+   <div>
+    <h1 id="mainTitle" style="margin:0 0 2px">Simulateur 3D · Salle de bain & Buanderie</h1>
+    <div class="brand"><a href="https://www.lecoupdemain-services.fr" target="_blank" rel="noopener" style="text-decoration:none">www.lecoupdemain-services.fr</a></div>
+   </div>
+  </div>
+  <div style="height:8px"></div>
+  <div id="prog"><div id="pbar"></div></div>
+  <div id="stl"><span id="stTxt"></span><button id="resetBtn" type="button">Réinitialiser</button></div>
+ </div>
+
+ <div id="sc">
+  <div class="warn">Cet outil sert à imaginer votre implantation. Ce n’est pas un plan final : les cotes et raccordements seront vérifiés sur place par Julien.</div>
+
+  <!-- ÉTAPE 1 : Choix du mode + dimensions -->
+  <div class="stp" data-s="1">
+   <h2>Que souhaitez-vous aménager ?</h2>
+   <div class="mode-box">
+    <button type="button" class="mode-btn on" id="m_sdb">🚿 Salle de bain</button>
+    <button type="button" class="mode-btn" id="m_bua">🧺 Buanderie</button>
+   </div>
+   <h2>Dimensions de votre pièce</h2>
+   <p class="h">Renseignez les dimensions intérieures de la pièce.</p>
+   <div class="row2">
+    <div><label>Longueur (cm)</label><input type="number" id="rl" value="300" step="10"></div>
+    <div><label>Largeur (cm)</label><input type="number" id="rw" value="240" step="10"></div>
+   </div>
+   <div class="fld"><label>Hauteur sous plafond (cm)</label><input type="number" id="rh" value="250" step="5"></div>
+   <p class="h" id="surf"></p>
+  </div>
+
+  <!-- ÉTAPE 2 : Portes et fenêtres -->
+  <div class="stp" data-s="2">
+   <h2>Portes et fenêtres</h2>
+   <p class="h">Ajoutez la porte (avec son sens d'ouverture) et les fenêtres. Les murs sont nommés A, B, C, D sur le schéma.</p>
+   <div class="row2"><button id="addDoor">+ Porte</button><button id="addWin">+ Fenêtre</button></div>
+   <div id="oplist"></div>
+  </div>
+
+  <!-- ÉTAPE 3 : Conduites -->
+  <div class="stp" data-s="3">
+   <h2>Vos conduites</h2>
+   <p class="h">Cliquez sur le schéma à l’endroit où arrivent vos conduites d’eau et l’évacuation.</p>
+   <p class="h" id="feedtxt"></p>
+   <div class="fld"><label>Y a-t-il un chauffage existant dans la pièce ?</label><select id="hsel"><option value="none">Non</option><option value="eau">Oui, un radiateur à eau</option><option value="elec">Oui, un radiateur électrique</option></select></div>
+   <div class="row2" id="hrow" style="display:none"><div><label>Sur quel mur</label><select id="hwall"></select></div><div><label>Position du centre (cm)</label><input type="number" id="hpos" value="100" step="5"></div></div>
+  </div>
+
+  <!-- ÉTAPE 4 : SDB (Douche/Bain) OU BUANDERIE (Lavage/Séchage) -->
+  <div class="stp" data-s="4">
+   <div class="only-sdb">
+    <h2>Douche et baignoire</h2>
+    <p class="h">Glissez les équipements sur la vue 3D pour les déplacer. Double-tap ou double-clic dessus pour les pivoter à 90°.</p>
+    <div class="chk"><input type="checkbox" id="i_shower" class="eq" checked><label for="i_shower">Je veux une douche</label></div>
+    <div class="row2">
+     <div><label>Receveur, longueur (cm)</label><input class="eq" type="number" id="sl" value="120" step="5" min="70" max="200"></div>
+     <div><label>Receveur, profondeur (cm)</label><input class="eq" type="number" id="sw2" value="80" step="5" min="70" max="120"></div>
+     <div><label>Paroi vitrée, largeur (cm)</label><input class="eq" type="number" id="gw" value="100" step="5" min="40" max="200"></div>
+     <div><label>Paroi, hauteur (cm)</label><input class="eq" type="number" id="gh" value="200" step="5" min="160" max="220"></div>
+    </div>
+    <div class="row2">
+     <div><label>Côté paroi fixe (de face)</label><select class="eq" id="gside"><option value="-1">À gauche</option><option value="1" selected>À droite</option></select></div>
+     <div><label>Mitigeur, côté (de face)</label><select class="eq" id="mix"><option value="-1">À gauche</option><option value="0">Au centre</option><option value="1" selected>À droite</option></select></div>
+    </div>
+    <div class="chk"><input type="checkbox" id="i_bath" class="eq"><label for="i_bath">Ajouter une baignoire (170 × 70 cm)</label></div>
+   </div>
+
+   <div class="only-bua" style="display:none">
+    <h2>Pôle Lavage & Séchage</h2>
+    <p class="h">Choisissez la disposition de vos machines (lave-linge et sèche-linge). Double-tap en 3D pour pivoter à 90°.</p>
+    <div class="chk"><input type="checkbox" id="i_b_wash" class="eq" checked><label for="i_b_wash">Ajouter un pôle machines à laver</label></div>
+    <div class="fld">
+     <label>Configuration</label>
+     <select class="eq" id="b_wcfg">
+      <option value="single">Lave-linge seul (60 × 60 cm)</option>
+      <option value="stack" selected>Colonne : Lave-linge + Sèche-linge superposé</option>
+      <option value="side">Côte à côte : Lave-linge + Sèche-linge (125 × 60 cm)</option>
+     </select>
+    </div>
+    <div class="chk"><input type="checkbox" id="b_wtop" class="eq" checked><label for="b_wtop">Avec plan de travail bois au-dessus (si côte à côte ou seul)</label></div>
+   </div>
+  </div>
+
+  <!-- ÉTAPE 5 : SDB (Meuble vasque) OU BUANDERIE (Évier utilitaire) -->
+  <div class="stp" data-s="5">
+   <div class="only-sdb">
+    <h2>Meuble vasque</h2>
+    <p class="h">Choisissez la largeur, simple ou double vasque, et le miroir.</p>
+    <div class="chk"><input type="checkbox" id="i_vanity" class="eq" checked><label for="i_vanity">Je veux un meuble vasque</label></div>
+    <div class="row2">
+     <div><label>Largeur</label><select class="eq" id="vw"><option value="60">60 cm</option><option value="80" selected>80 cm</option><option value="100">100 cm</option><option value="120">120 cm</option><option value="140">140 cm</option><option value="160">160 cm</option></select></div>
+     <div><label>Vasques</label><select class="eq" id="vcfg"><option value="auto">Automatique</option><option value="1">Simple</option><option value="2">Double</option></select></div>
+    </div>
+    <div class="fld"><label>Finition du meuble</label><select class="eq" id="vfin"></select></div>
+    <div class="chk"><input type="checkbox" id="vmir" class="eq" checked><label for="vmir">Avec miroir lumineux</label></div>
+   </div>
+
+   <div class="only-bua" style="display:none">
+    <h2>Évier de buanderie / Bac à laver</h2>
+    <p class="h">Idéal pour détacher le linge ou nettoyer le matériel.</p>
+    <div class="chk"><input type="checkbox" id="i_sink" class="eq" checked><label for="i_sink">Ajouter un évier sur meuble bas</label></div>
+    <div class="row2">
+     <div><label>Largeur du meuble évier</label><select class="eq" id="sinkw"><option value="60">60 cm (1 grand bac)</option><option value="80" selected>80 cm (bac + égouttoir)</option><option value="100">100 cm (grand bac + plan)</option></select></div>
+     <div><label>Finition</label><select class="eq" id="sinkfin"><option value="white">Blanc</option><option value="oak">Chêne clair</option><option value="anth">Anthracite</option></select></div>
+    </div>
+   </div>
+  </div>
+
+  <!-- ÉTAPE 6 : SDB (WC) OU BUANDERIE (Rangements, Étagères, Étendoir, Ballon) -->
+  <div class="stp" data-s="6">
+   <div class="only-sdb">
+    <h2>WC</h2>
+    <p class="h">Suspendu avec bâti-support, ou à poser au sol sans bâti.</p>
+    <div class="chk"><input type="checkbox" id="i_wc" class="eq" checked><label for="i_wc">Je veux un WC</label></div>
+    <div class="fld"><label>Type</label><select class="eq" id="wtype"><option value="wc">Suspendu avec bâti</option><option value="wc2">À poser, sans bâti</option></select></div>
+    <div class="chk"><input type="checkbox" id="i_wcshelf" class="eq" checked><label for="i_wcshelf">Coffrage mi-hauteur avec tablette déco bois</label></div>
+   </div>
+
+   <div class="only-bua" style="display:none">
+    <h2>Rangements, Étagères & Étendoir</h2>
+    <p class="h">Optimisez votre buanderie. L’étendoir mural et les étagères sont fixés en hauteur : vous pouvez les placer au-dessus d'un meuble bas !</p>
+    <div class="chk"><input type="checkbox" id="i_tall" class="eq" checked><label for="i_tall">Armoire haute balais / aspirateur (60 × 60 × H 200 cm)</label></div>
+    <div class="chk"><input type="checkbox" id="i_shelf" class="eq" checked><label for="i_shelf">Étagères murales 3 niveaux en bois</label></div>
+    <div class="fld"><label>Largeur des étagères murales</label><select class="eq" id="shelfw"><option value="80">80 cm</option><option value="100" selected>100 cm</option><option value="120">120 cm</option></select></div>
+    <div class="chk"><input type="checkbox" id="i_dryline" class="eq" checked><label for="i_dryline">Étendoir à linge mural à fils (en hauteur)</label></div>
+    <div class="fld"><label>Largeur de l’étendoir mural</label><select class="eq" id="dryw"><option value="100">100 cm (5 mètres d'étendage)</option><option value="140" selected>140 cm (7 mètres d'étendage)</option></select></div>
+    <div class="chk"><input type="checkbox" id="i_boiler" class="eq"><label for="i_boiler">Ballon d’eau chaude / Cumulus (60 × 60 cm)</label></div>
+   </div>
+  </div>
+
+  <!-- ÉTAPE 7 : Sèche-serviettes, patères + Machine à laver (en mode SDB) -->
+  <div class="stp" data-s="7">
+   <h2 id="st7Title">Sèche-serviettes et lave-linge</h2>
+   <p class="h">Chauffage d'appoint, patères et emplacement machine à laver.</p>
+   <div class="chk"><input type="checkbox" id="i_rad" class="eq"><label for="i_rad">Je veux un sèche-serviettes / radiateur</label></div>
+   <div class="row2">
+    <div><label>Type</label><select class="eq" id="rtype"><option value="eau">Sur le réseau (eau chaude)</option><option value="elec">Électrique</option></select></div>
+    <div><label>Largeur</label><select class="eq" id="rw2"><option value="50">50 cm</option><option value="60">60 cm</option></select></div>
+   </div>
+   <div class="only-sdb">
+    <div class="chk" style="margin-top:14px;padding-top:10px;border-top:1px dashed var(--line)">
+     <input type="checkbox" id="i_sdb_wash" class="eq"><label for="i_sdb_wash">Ajouter une machine à laver dans la salle de bain (60 × 60 cm)</label>
+    </div>
+   </div>
+   <div class="fld"><label>Nombre de patères / crochets muraux</label><input class="eq" type="number" id="npat" value="2" min="0" max="10"></div>
+  </div>
+
+  <!-- ÉTAPE 8 : Finitions -->
+  <div class="stp" data-s="8">
+   <h2>Finitions sols et murs</h2>
+   <p class="h">Choisissez l’ambiance de votre pièce.</p>
+   <div class="fld"><label>Sol</label><select id="tf"><option value="slate">Ardoise anthracite 60×120</option><option value="terrazzo">Terrazzo clair 60×60</option><option value="oak">Parquet chêne clair</option><option value="cement">Carreaux de ciment 30×30</option></select></div>
+   <div class="fld"><label>Murs</label><select id="tw"><option value="zellige">Zellige vert sauge 10×10</option><option value="marble">Marbre blanc veiné 60×120</option><option value="metro">Carreau métro blanc 7,5×15</option><option value="plaster">Enduit tadelakt / peinture sable</option><option value="cement">Carreaux de ciment 30×30</option></select></div>
+  </div>
+
+  <!-- ÉTAPE 9 : Coordonnées et envoi -->
+  <div class="stp" data-s="9">
+   <h2>Vos coordonnées & Dossier technique</h2>
+   <p class="h">Récapitulatif de votre projet. Nous vous recontactons rapidement pour valider l’implantation sur place.</p>
+   <ul id="bill"></ul>
+   <div class="row2"><button id="dl3" type="button">Télécharger ma vue 3D (HD)</button><button id="dlp" type="button">Télécharger le schéma 2D</button></div>
+   <div class="fld"><button id="bwa" type="button" style="background:#25D366;color:#fff;border-color:#25D366;">Envoyer mon dossier technique par WhatsApp</button></div>
+   <div class="fld"><button id="bphoto" type="button">Envoyer une photo de ma pièce actuelle (WhatsApp)</button></div>
+   <div class="row2"><div><label>Nom *</label><input id="f_nom"></div><div><label>Prénom *</label><input id="f_prenom"></div></div>
+   <div class="fld"><label>Adresse</label><input id="f_adr"></div>
+   <div class="row2"><div><label>Code postal</label><input id="f_cp"></div><div><label>Ville</label><input id="f_ville"></div><div><label>Téléphone *</label><input id="f_tel" type="tel"></div><div><label>E-mail *</label><input id="f_mail" type="email"></div></div>
+   <div class="fld"><label>Votre projet</label><select id="f_proj"><option>Rénovation complète</option><option>Création de buanderie</option><option>Remplacement baignoire par douche</option><option>Création salle de bain</option><option>Autre</option></select></div>
+   <div class="fld"><label>Message ou précisions</label><textarea id="f_msg" rows="3"></textarea></div>
+   <div class="chk"><input type="checkbox" id="f_ok"><label for="f_ok">Je comprends que ce schéma est une implantation indicative et non un plan définitif.</label></div>
+   <div id="done" class="warn" style="display:none;background:#e6f4ea;color:#14532d">Merci ! Votre projet a bien été envoyé à Julien.</div>
+  </div>
+ </div>
+
+ <div id="foot"><button id="bprev">Retour</button><button id="bnext" class="pri">Suivant</button></div>
+</div>
+
+<div id="main">
+ <div id="tabs">
+  <button data-v="plan">Schéma technique</button>
+  <button data-v="3d">Vue 3D</button>
+  <button data-v="top">Vue de dessus</button>
+ </div>
+ <div id="stage">
+  <div id="gl"></div>
+  <canvas id="plan"></canvas>
+  <div id="hint"></div>
+  <button id="fsBtn" type="button">⛶ Plein écran</button>
+ </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const $=i=>document.getElementById(i),CFG={email:'contact@lecoupdemain-services.fr',site:'https://www.lecoupdemain-services.fr',form:'https://formspree.io/f/xyzrndwa',tube:'multicouche ou PER',tel:'06 46 66 42 22'};
+let mode='sdb',L=3,W=2.4,H=2.5,ops=[],items=[],feed={x:.1,z:.1,w:0},heat={on:false,wall:3,pos:1,type:'eau'},heatG=null,step=1,maxStep=1,view='plan',drag=null,orb=null,tt;
+const ROT=[0,-Math.PI/2,Math.PI,Math.PI/2],WN=['A (fond)','B (droite)','C (devant)','D (gauche)'];
+const SWING={pg:'Poussant gauche (intérieur)',pd:'Poussant droit (intérieur)',tg:'Tirant gauche (extérieur)',td:'Tirant droit (extérieur)'};
+// BOT = hauteur du bas de l'objet (permet de mettre des étagères ou un étendoir à fil au-dessus d'un meuble bas !)
+const BOT={vanity:0,shower:0,wc:0,wc2:0,bath:0,rad:.3,washer:0,wash_stack:0,wash_side:0,sink:0,tall:0,boiler:0,shelf:1.3,dryline:1.75};
+const TOP={vanity:1.05,shower:2.05,wc:1.15,wc2:.9,bath:.6,rad:1.55,washer:.9,wash_stack:1.8,wash_side:.9,sink:.95,tall:2.0,boiler:1.85,shelf:2.0,dryline:1.95};
+const NAME={shower:'Douche',bath:'Baignoire',vanity:'Meuble vasque',wc:'WC suspendu',wc2:'WC à poser',rad:'Sèche-serviettes',washer:'Lave-linge',wash_stack:'Colonne Lave-linge + Sèche-linge',wash_side:'Lave-linge + Sèche-linge côte à côte',sink:'Évier buanderie',tall:'Armoire haute balais',shelf:'Étagères murales bois',dryline:'Étendoir mural à fils',boiler:'Ballon eau chaude'};
+const MSG={room:'Hors de la pièce',item:'Collision avec un autre équipement',door:'Impossible : bloqué par l’ouverture de la porte',window:'Impossible : fenêtre trop basse pour cet équipement',heat:'Impossible : emplacement occupé par le chauffage existant'};
+const FIN={white:['Blanc brillant',0xf4f4f2],oak:['Chêne clair',0xc8a06a],anth:['Gris anthracite',0x3a3f45],green:['Vert sauge',0x7d8f79]};
+for(const k in FIN)$('vfin').add(new Option(FIN[k][0],k));WN.forEach((n,k)=>$('hwall').add(new Option(n,k)));$('hwall').value=3;
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',2600)}
+
+function getSTL(){
+ return mode==='sdb'
+  ?['Projet & Pièce','Portes et fenêtres','Mes conduites','Douche et baignoire','Meuble vasque','WC','Sèche-serviettes & Lave-linge','Finitions','Mes coordonnées']
+  :['Projet & Pièce','Portes et fenêtres','Mes conduites','Lave-linge & Sèche-linge','Évier de buanderie','Étagères, Armoire & Étendoir','Radiateur & Patères','Finitions','Mes coordonnées'];
+}
+
+function setMode(m){
+ mode=m;
+ $('m_sdb').classList.toggle('on',m==='sdb');
+ $('m_bua').classList.toggle('on',m==='bua');
+ document.querySelectorAll('.only-sdb').forEach(e=>e.style.display=m==='sdb'?'block':'none');
+ document.querySelectorAll('.only-bua').forEach(e=>e.style.display=m==='bua'?'block':'none');
+ $('st7Title').textContent=m==='sdb'?'Sèche-serviettes et lave-linge':'Radiateur sèche-serviettes et patères';
+ items.forEach(it=>{if(it.g)scene.remove(it.g)});items=[];
+ if(m==='bua'){$('tf').value='terrazzo';$('tw').value='plaster';$('f_proj').value='Création de buanderie'}
+ else{$('tf').value='slate';$('tw').value='zellige';$('f_proj').value='Rénovation complète'}
+ buildRoom();applyAll();
+ $('stTxt').textContent='Étape '+step+' sur 9 · '+getSTL()[step-1];
+}
+$('m_sdb').onclick=()=>setMode('sdb');
+$('m_bua').onclick=()=>setMode('bua');
+
+/* ---------- Textures ---------- */
+const KIND={slate:{b:[44,50,58],c:2,r:1,v:10,gr:'#14171b',gl:.45},terrazzo:{b:[226,218,204],c:2,r:2,v:6,gr:'#c3baa9',gl:.4,fl:1},oak:{b:[190,148,98],c:1,r:8,v:14,gr:'#6b4f2f',gl:.5,wood:1},marble:{b:[236,236,232],c:2,r:1,v:3,gr:'#c9cbcb',gl:.12,vein:1},zellige:{b:[62,112,98],c:12,r:12,v:20,gr:'#e3e0d6',gl:.15},metro:{b:[245,245,242],c:8,r:16,v:3,gr:'#a9aaa6',gl:.15,st:1},cement:{c:1,r:0,gl:.35},plaster:{c:1,r:0,gl:.85}};
+function tex(kind,rx,ry){const K=KIND[kind],S=512,cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d'),R=Math.random;
+ if(K.r){const tw=S/K.c,th=S/K.r;
+  for(let i=0;i<K.r;i++){const off=K.st?(i%2?tw/2:0):K.wood?R()*tw:0;
+   for(let j=-1;j<=K.c;j++){const x=j*tw+off,y=i*th,v=(R()-.5)*K.v*2;
+    g.save();g.beginPath();g.rect(x,y,tw,th);g.clip();g.fillStyle=`rgb(${K.b.map(a=>a+v|0)})`;g.fillRect(x,y,tw,th);
+    if(K.wood)for(let n=0;n<10;n++){g.strokeStyle=`rgba(90,60,30,${.05+R()*.12})`;g.lineWidth=1;g.beginPath();const yy=y+R()*th;g.moveTo(x,yy);g.lineTo(x+tw,yy);g.stroke()}
+    if(K.vein)for(let n=0;n<3;n++){g.strokeStyle=`rgba(110,115,120,${.15+R()*.3})`;g.lineWidth=1+R()*2;g.beginPath();g.moveTo(x+R()*tw,y);g.lineTo(x+R()*tw,y+th);g.stroke()}
+    if(K.fl)for(let n=0;n<30;n++){g.fillStyle=['#8c7b6a','#b9a58f','#5d6b74','#d8cfc2','#a3523f'][n%5];g.beginPath();g.arc(x+R()*tw,y+R()*th,1.5+R()*2.5,0,7);g.fill()}
+    g.restore();g.strokeStyle=K.gr;g.lineWidth=kind==='zellige'?3:2;g.strokeRect(x,y,tw,th)}}}
+ else if(kind==='cement'){const u=S/4;for(let i=0;i<4;i++)for(let j=0;j<4;j++){const a=(i+j)%2,c1=a?'#c9694a':'#1f3a5f',c2=a?'#1f3a5f':'#c9694a';
+   g.save();g.translate((i+.5)*u,(j+.5)*u);g.fillStyle='#efe6d3';g.fillRect(-u/2,-u/2,u,u);
+   g.fillStyle=c1;g.rotate(Math.PI/4);g.fillRect(-u*.3,-u*.3,u*.6,u*.6);g.rotate(-Math.PI/4);g.fillStyle=c2;g.beginPath();g.arc(0,0,u*.2,0,7);g.fill();g.restore();g.strokeStyle='#b5aa95';g.lineWidth=2;g.strokeRect(i*u,j*u,u,u)}}
+ else{g.fillStyle='#e5dac3';g.fillRect(0,0,S,S)}
+ const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.encoding=THREE.sRGBEncoding;
+ return new THREE.MeshPhysicalMaterial({map:t,roughness:K.gl,metalness:.02,side:THREE.DoubleSide})}
+
+/* ---------- Scène 3D & Modèles ---------- */
+const gl=$('gl'),pc=$('plan');let scene,persp,ortho,cam,rend,room;const sph={t:.7,p:1,r:5};
+const M=(c,r=.4,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m,envMapIntensity:.5});
+const CH=M(0xd9dadd,.12,.95),WH=M(0xffffff,.15),HD=M(0x2a2a2a,.3,.8),OAK=M(0xc8a06a,.45);
+
+function initScene(){scene=new THREE.Scene();scene.background=new THREE.Color(0x1d2829);
+ persp=new THREE.PerspectiveCamera(42,1,.1,60);ortho=new THREE.OrthographicCamera(-1,1,1,-1,.1,30);cam=persp;
+ rend=new THREE.WebGLRenderer({antialias:true});rend.setPixelRatio(Math.min(devicePixelRatio,2));rend.shadowMap.enabled=true;rend.shadowMap.type=THREE.PCFSoftShadowMap;rend.outputEncoding=THREE.sRGBEncoding;rend.toneMapping=THREE.ACESFilmicToneMapping;rend.toneMappingExposure=.88;gl.appendChild(rend.domElement);
+ scene.add(new THREE.HemisphereLight(0xffffff,0x6e7f80,.45));
+ const d=new THREE.DirectionalLight(0xfff1dc,.95);d.position.set(4,6,5);d.castShadow=true;d.shadow.mapSize.set(1024,1024);Object.assign(d.shadow.camera,{left:-5,right:5,top:5,bottom:-5});d.shadow.bias=-.0005;scene.add(d);
+ const p=new THREE.PointLight(0xffd9a0,.35,8);scene.add(p);scene.userData.pl=p;buildRoom();loop()}
+
+function buildRoom(){if(room)scene.remove(room);room=new THREE.Group();const fk=$('tf').value,wk=$('tw').value;
+ const mesh=(geo,mat,x,y,z,ry=0,rx=0)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.rotation.y=ry;m.rotation.x=rx;m.receiveShadow=true;room.add(m);return m};
+ mesh(new THREE.PlaneGeometry(L,W),tex(fk,L/1.2,W/1.2),L/2,0,W/2,0,-Math.PI/2);mesh(new THREE.PlaneGeometry(L,H),tex(wk,L/1.2,H/1.2),L/2,H/2,0);mesh(new THREE.PlaneGeometry(W,H),tex(wk,W/1.2,H/1.2),0,H/2,W/2,Math.PI/2);
+ const sm=M(0xe9e5dc,.8),bx=(a,b,c,x,y,z)=>mesh(new THREE.BoxGeometry(a,b,c),sm,x,y,z);
+ bx(L+.2,H,.1,L/2,H/2,-.05);bx(.1,H,W,-.05,H/2,W/2);bx(L+.2,.04,.1,L/2,.02,W+.05);bx(.1,.04,W,L+.05,.02,W/2);
+ const gm=new THREE.MeshBasicMaterial({color:0xcfd8e6,transparent:true,opacity:.06,side:THREE.DoubleSide,depthWrite:false});
+ mesh(new THREE.PlaneGeometry(L,H),gm,L/2,H/2,W);mesh(new THREE.PlaneGeometry(W,H),gm,L,H/2,W/2,Math.PI/2);
+ scene.add(room);scene.userData.pl.position.set(L/2,H-.2,W/2);sph.r=Math.max(L,W)*1.9}
+
+function addMachineUnit(add,B,C,x0,y0,z0,d,isDryer){
+ // Corps de machine 60x85x60 avec hublot réaliste
+ add(B(.59,.84,d),WH,x0,y0+.42,0);
+ add(B(.59,.12,.02),M(0xeeeff2,.2),x0,y0+.76,d/2+.005); // Bandeau
+ add(C(.025,.02),CH,x0+.12,y0+.76,d/2+.015).rotation.x=Math.PI/2; // Molette
+ add(B(.14,.04,.01),M(0x222831,.2),x0-.15,y0+.76,d/2+.012); // Écran LED
+ // Hublot
+ const dr=add(C(.2,.03),HD,x0,y0+.4,d/2+.01);dr.rotation.x=Math.PI/2;
+ const gls=add(C(.15,.035),new THREE.MeshStandardMaterial({color:isDryer?0x3a4048:0x88bbee,transparent:true,opacity:.65,roughness:.1}),x0,y0+.4,d/2+.012);gls.rotation.x=Math.PI/2;
+}
+
+function build(it){const g=new THREE.Group(),{w,d}=it,z0=-d/2,t=it.type,B=(a,b,c)=>new THREE.BoxGeometry(a,b,c),C=(r,h)=>new THREE.CylinderGeometry(r,r,h,24);
+ const add=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;g.add(m);return m};
+ if(t==='vanity'){add(B(w,.5,d),M(FIN[it.fin][1],.4),0,.55,0);add(B(w*.8,.015,.014),HD,0,.72,d/2+.006);add(B(w*.8,.015,.014),HD,0,.45,d/2+.006);add(B(w+.02,.04,d+.02),M(0xffffff,.1),0,.82,0);
+  const n=it.dbl?2:1;for(let i=0;i<n;i++){const x=n===2?(i?1:-1)*w/4:0;add(B(Math.min(.46,w/n-.1),.03,.34),M(0xf3f6f8,.05),x,.845,.03);add(C(.03,.012),CH,x,.862,.03);add(C(.015,.2),CH,x,.94,z0+.06);add(C(.01,.14),CH,x,1.03,z0+.12).rotation.x=Math.PI/2}
+  if(it.mir){const mw=Math.min(w*.9,1.4);add(B(mw+.06,.76,.012),new THREE.MeshBasicMaterial({color:0xffe6bd}),0,1.5,z0+.006);add(B(mw,.7,.03),M(0x30333a,.4),0,1.5,z0+.026);add(B(mw-.04,.66,.006),M(0xe6edf0,.03,.9),0,1.5,z0+.044)}}
+ else if(t==='shower'){
+  const mx=it.mix*(w/2-.22),gw=Math.min(it.gw,w),gs=it.gside||1;
+  const gx=gs*(w/2-gw/2),ge=gs*(w/2-gw);
+  const gm=new THREE.MeshStandardMaterial({color:0xd5eff8,transparent:true,opacity:.45,roughness:0.05,metalness:.1,side:THREE.DoubleSide});
+  add(B(w,.04,d),M(0xf2f2ef,.25),0,.02,0);add(B(.12,.006,.12),CH,0,.043,0);
+  add(B(gw,it.gh,.01),gm,gx,it.gh/2+.04,d/2-.01);
+  add(B(gw,.025,.03),CH,gx,.03,d/2-.01);add(B(gw,.025,.03),CH,gx,it.gh+.04,d/2-.01);add(B(.03,it.gh,.03),CH,ge,it.gh/2+.04,d/2-.01);
+  add(C(.012,d),CH,ge,it.gh+.04,0).rotation.x=Math.PI/2;
+  add(B(.16,.16,.025),CH,mx,1.05,z0+.015);add(C(.012,1),CH,mx,1.55,z0+.03);add(B(.3,.015,.3),CH,mx,2.1,z0+.2);add(C(.012,.18),CH,mx,2.1,z0+.06).rotation.x=Math.PI/2
+ }
+ else if(t==='wc'){
+  add(B(w,it.shelf?1.15:1,.18),M(0xdcdad4,.7),0,it.shelf?0.575:0.6,z0+.09);
+  if(it.shelf)add(B(w+.04,.04,.24),OAK,0,1.17,z0+.1);
+  add(B(.22,.14,.01),CH,0,it.shelf?1.05:1,z0+.185);
+  const b=add(new THREE.SphereGeometry(.18,28,18),WH,0,.4,z0+.2);b.scale.set(.95,.62,1.4);
+  const s=add(C(.17,.02),WH,0,.455,z0+.2);s.scale.set(1,1,1.4)
+ }
+ else if(t==='wc2'){add(B(w*.8,.43,.2),WH,0,.215,z0+.1);add(B(w,.4,.2),WH,0,.63,z0+.1);add(B(.12,.02,.05),CH,0,.84,z0+.1);const b=add(new THREE.SphereGeometry(.2,28,18),WH,0,.2,z0+.36);b.scale.set(.9,.9,1.55);const s=add(C(.17,.02),WH,0,.42,z0+.36);s.scale.set(1,1,1.5)}
+ else if(t==='bath'){add(B(w,.55,d),WH,0,.275,0);add(B(w-.1,.02,d-.1),M(0xbfdcee,.05),0,.55,0);add(C(.015,.22),CH,-w/2+.1,.66,0);add(C(.01,.12),CH,-w/2+.16,.76,0).rotation.z=Math.PI/2}
+ else if(t==='washer'){
+  addMachineUnit(add,B,C,0,0,z0,d,false);
+  if(it.top)add(B(w+.02,.035,d+.02),OAK,0,.86,0);
+ }
+ else if(t==='wash_stack'){
+  addMachineUnit(add,B,C,0,0,z0,d,false);
+  add(B(.6,.03,d),OAK,0,.855,0); // Kit de superposition
+  addMachineUnit(add,B,C,0,.87,z0,d,true);
+ }
+ else if(t==='wash_side'){
+  addMachineUnit(add,B,C,-.31,0,z0,d,false);
+  addMachineUnit(add,B,C,.31,0,z0,d,true);
+  if(it.top)add(B(w+.02,.038,d+.02),OAK,0,.865,0); // Grand plan de travail pliage linge
+ }
+ else if(t==='sink'){
+  const col=FIN[it.fin||'white'][1];
+  add(B(w,.82,d),M(col,.4),0,.41,0); // Meuble bas
+  add(B(w+.02,.035,d+.02),OAK,0,.835,0); // Plan
+  add(B(Math.min(.5,w-.12),.12,.4),M(0xd9dadd,.2,.8),w>.7?-.12:0,.81,.02); // Cuve inox/résine
+  add(C(.015,.28),CH,w>.7?-.12:0,.98,z0+.08); // Robinet col de cygne haut
+  add(C(.012,.16),CH,w>.7?-.12:0,1.1,z0+.15).rotation.x=Math.PI/2;
+ }
+ else if(t==='tall'){
+  add(B(w,1.95,d),M(0xf4f4f2,.35),0,.975,0);
+  add(B(.015,.9,.015),HD,w/2-.06,1.1,d/2+.01);
+ }
+ else if(t==='shelf'){
+  // 3 étagères en chêne avec équerres noires
+  [1.35,1.65,1.95].forEach(y=>{
+   add(B(w,.028,d),OAK,0,y,0);
+   add(B(.02,.12,d-.02),HD,-w/2+.08,y-.06,0);
+   add(B(.02,.12,d-.02),HD,w/2-.08,y-.06,0);
+  });
+ }
+ else if(t==='dryline'){
+  // Étendoir mural à fils (hauteur 1.85m)
+  add(B(.03,.12,d),HD,-w/2+.02,1.85,0);
+  add(B(.03,.12,d),HD,w/2-.02,1.85,0);
+  for(let i=1;i<=5;i++){
+   const z=-d/2+i*(d/6);
+   const wire=add(C(.003,w),CH,0,1.85,z);wire.rotation.z=Math.PI/2;
+  }
+ }
+ else if(t==='boiler'){
+  add(C(.27,1.25),WH,0,1.15,0);
+  add(B(.12,.06,.02),HD,0,.7,d/2-.02);
+ }
+ else if(t==='rad'||t==='oldrad'){const c=t==='rad'?0xf2f2f0:0xb8bcc0,n=t==='rad'?9:5;for(let i=0;i<n;i++)add(B(w,.025,.035),M(c,.4),0,.35+i*(t==='rad'?.15:.12),.03);add(B(.03,t==='rad'?1.45:.55,.04),M(c,.4),-w/2+.02,t==='rad'?1.05:.6,.03);add(B(.03,t==='rad'?1.45:.55,.04),M(c,.4),w/2-.02,t==='rad'?1.05:.6,.03);if(it.elec)add(B(.06,.06,.03),M(0x222222,.5),w/2-.05,.2,.04)}
+ else if(t==='door'){
+  const sw=it.swing||'pg',isL=sw==='pg'||sw==='tg';
+  add(B(w+.1,2.09,.06),M(0xf1efe9,.5),0,1.045,0);add(B(w,2.04,.03),M(0xb98e5b,.55),0,1.02,.045);
+  const hx=isL?(w/2-.08):(-w/2+.08);add(C(.01,.1),CH,hx,1.02,.09).rotation.z=Math.PI/2
+ }
+ else if(t==='window'){const y=it.sill,fr=M(0xf5f5f3,.4);add(B(w+.08,1.28,.08),fr,0,y+.6,0);add(B(w-.04,1.16,.02),new THREE.MeshStandardMaterial({color:0xdff3ff,transparent:true,opacity:.6,roughness:0,metalness:.2,emissive:0xbfe3ff,emissiveIntensity:.7}),0,y+.6,.04);add(B(.03,1.2,.05),fr,0,y+.6,.045);add(B(w,.03,.05),fr,0,y+.6,.045)}
+ return g}
+
+/* ---------- Géométrie & Placement (avec gestion hauteur BOT / TOP) ---------- */
+const q=it=>((Math.round(it.rot/(Math.PI/2))%4)+4)%4,ov=(a,b)=>a.x0<b.x1-1e-6&&a.x1>b.x0+1e-6&&a.z0<b.z1-1e-6&&a.z1>b.z0+1e-6;
+const vOv=(t1,t2)=>Math.max(BOT[t1]||0,BOT[t2]||0)<Math.min(TOP[t1]||2,TOP[t2]||2);
+function rect(it){const sw=q(it)%2,hx=(sw?it.d:it.w)/2,hz=(sw?it.w:it.d)/2;return{x0:it.x-hx,x1:it.x+hx,z0:it.z-hz,z1:it.z+hz}}
+function contact(it){const k=q(it),r=rect(it),hx=(r.x1-r.x0)/2,hz=(r.z1-r.z0)/2;it.x=Math.max(hx,Math.min(L-hx,it.x));it.z=Math.max(hz,Math.min(W-hz,it.z));if(k===0)it.z=hz;else if(k===1)it.x=hx;else if(k===3)it.x=L-hx;else it.z=W-hz}
+function snap(it){const a=[it.z,it.x,L-it.x,W-it.z],m=Math.min(...a);it.rot=[0,Math.PI/2,-Math.PI/2,Math.PI][a.indexOf(m)];contact(it)}
+const wr=(wl,p,hw,d)=>wl===0?{x0:p-hw,x1:p+hw,z0:0,z1:d}:wl===2?{x0:p-hw,x1:p+hw,z0:W-d,z1:W}:wl===1?{x0:L-d,x1:L,z0:p-hw,z1:p+hw}:{x0:0,x1:d,z0:p-hw,z1:p+hw};
+const wp=(wl,p)=>[[p,0],[L,p],[p,W],[0,p]][wl];
+function obstacles(){const o=[];ops.forEach(p=>{
+ const isOut=p.kind==='door'&&(p.swing==='tg'||p.swing==='td');
+ const depth=p.kind==='door'?(isOut?.15:p.w):.15;
+ const r=wr(p.wall,p.pos,p.w/2,depth);r.t=p.kind==='door'?0:p.sill;r.why=p.kind;o.push(r)});
+ if(heat.on){const r=wr(heat.wall,heat.pos,.3,.15);r.t=0;r.why='heat';o.push(r)}return o}
+function bad(it,ref){const r=rect(it),e=1e-6;if(r.x0<-e||r.z0<-e||r.x1>L+e||r.z1>W+e)return'room';
+ for(const o of items)if(o!==ref&&vOv(it.type,o.type)&&ov(r,rect(o)))return'item';
+ for(const o of obstacles())if(TOP[it.type]>o.t&&ov(r,o))return o.why;return''}
+function autoPlace(it,ref){for(const w of [0,3,1,2])for(let t=0;t<=(w%2?W:L)+.001;t+=.05){it.rot=ROT[w];it.x=w===1?L:w%2?0:t;it.z=w===2?W:w%2?t:0;contact(it);if(!bad(it,ref))return true}return false}
+function openOK(o){const len=o.wall%2?W:L;if(o.w<.3||o.pos-o.w/2<.02||o.pos+o.w/2>len-.02)return false;return!ops.some(p=>p!==o&&p.wall===o.wall&&Math.abs(p.pos-o.pos)<(p.w+o.w)/2)}
+function mk(it){if(it.g)scene.remove(it.g);it.g=build(it);scene.add(it.g);it.g.position.set(it.x,0,it.z);it.g.rotation.y=it.rot}
+function mkOp(o){if(o.g)scene.remove(o.g);o.d=o.d||(o.kind==='door'?.06:.08);const d=o.d,p=o.pos;o.g=build({type:o.kind,w:o.w,d,sill:o.sill,swing:o.swing||'pg',elec:0});scene.add(o.g);const c=[[p,d/2],[L-d/2,p],[p,W-d/2],[d/2,p]][o.wall];o.g.position.set(c[0],0,c[1]);o.g.rotation.y=ROT[o.wall]}
+function revalidate(){items.slice().forEach(it=>{if(bad(it,it)){if(!autoPlace(it,it)){scene.remove(it.g);items.splice(items.indexOf(it),1);toast(NAME[it.type]+' retiré : plus de place')}else mk(it)}});refresh()}
+
+/* ---------- Étape 2 : Ouvertures ---------- */
+function addOp(kind){const o={kind,wall:2,pos:0,w:kind==='door'?.83:.8,sill:1,swing:'pg'};let ok=false;
+ for(const wl of [2,0,1,3]){o.wall=wl;for(let p=o.w/2+.1;p<=(wl%2?W:L)-o.w/2-.1&&!ok;p+=.1){o.pos=p;ok=openOK(o)}if(ok)break}
+ if(!ok){toast('Plus de place sur les murs');return}ops.push(o);mkOp(o);renderOps();revalidate()}
+function editOp(o,f,v){const old={wall:o.wall,pos:o.pos,w:o.w,sill:o.sill,swing:o.swing};
+ if(f==='wall'){o.wall=+v;o.pos=(o.wall%2?W:L)/2}else if(f==='swing'){o.swing=v}else if(f==='sill'){o.sill=Math.max(0,Math.min(+v/100,H-1.3))}else{o[f]=+v/100}
+ if(!openOK(o)){Object.assign(o,old);toast('Position impossible')}else{mkOp(o);revalidate()}renderOps()}
+function renderOps(){const l=$('oplist');l.innerHTML='';ops.forEach((o,i)=>{const d=document.createElement('div');d.className='op';
+ d.innerHTML=`<b>${o.kind==='door'?'Porte':'Fenêtre'} ${i+1}</b><button class="x">Supprimer</button><div class="row2"><div><label>Mur</label><select data-f="wall">${WN.map((n,k)=>`<option value="${k}"${k===o.wall?' selected':''}>${n}</option>`).join('')}</select></div><div><label>Position centre (cm)</label><input type="number" data-f="pos" step="5" value="${Math.round(o.pos*100)}"></div><div><label>Largeur (cm)</label><input type="number" data-f="w" step="5" value="${Math.round(o.w*100)}"></div>${o.kind==='door'?`<div><label>Sens d'ouverture</label><select data-f="swing">${Object.entries(SWING).map(([k,v])=>`<option value="${k}"${k===(o.swing||'pg')?' selected':''}>${v}</option>`).join('')}</select></div>`:`<div><label>Hauteur d’allège (cm)</label><input type="number" data-f="sill" step="5" value="${Math.round(o.sill*100)}"></div>`}</div>`;
+ d.querySelectorAll('[data-f]').forEach(e=>e.onchange=()=>editOp(o,e.dataset.f,e.value));d.querySelector('.x').onclick=()=>{scene.remove(o.g);ops.splice(i,1);renderOps();revalidate()};l.appendChild(d)})}
+
+/* ---------- Étape 3 : Conduites ---------- */
+function updHeat(){const t=$('hsel').value,old={...heat};heat.on=t!=='none';heat.type=t;heat.wall=+$('hwall').value;heat.pos=(+$('hpos').value||100)/100;$('hrow').style.display=heat.on?'grid':'none';
+ if(heat.on){const o={wall:heat.wall,pos:heat.pos,w:.6};if(!openOK(o)){Object.assign(heat,old);$('hsel').value=old.on?old.type:'none';toast('Position impossible');$('hrow').style.display=heat.on?'grid':'none'}}
+ if(heatG)scene.remove(heatG);heatG=null;if(heat.on){heatG=build({type:'oldrad',w:.6,d:.1,elec:heat.type==='elec'});scene.add(heatG);const c=[[heat.pos,.05],[L-.05,heat.pos],[heat.pos,W-.05],[.05,heat.pos]][heat.wall];heatG.position.set(c[0],0,c[1]);heatG.rotation.y=ROT[heat.wall]}revalidate()}
+function setFeed(cx,cz){cx=Math.max(0,Math.min(L,cx));cz=Math.max(0,Math.min(W,cz));const d=[cz,L-cx,W-cz,cx],w=d.indexOf(Math.min(...d)),m=.1;
+ feed=w===0?{x:Math.max(m,Math.min(L-m,cx)),z:m,w}:w===1?{x:L-m,z:Math.max(m,Math.min(W-m,cz)),w}:w===2?{x:Math.max(m,Math.min(L-m,cx)),z:W-m,w}:{x:m,z:Math.max(m,Math.min(W-m,cz)),w};
+ $('feedtxt').textContent='Arrivée placée sur le mur '+WN[w]+'.';refresh()}
+
+/* ---------- Équipements selon le mode (Salle de bain ou Buanderie) ---------- */
+const DEFS_SDB=[
+ ['shower',4,()=>({type:'shower',w:+$('sl').value/100,d:+$('sw2').value/100,gw:+$('gw').value/100,gh:+$('gh').value/100,gside:+$('gside').value,mix:+$('mix').value})],
+ ['bath',4,()=>({type:'bath',w:1.7,d:.7})],
+ ['vanity',5,()=>{const w=+$('vw').value/100,c=$('vcfg').value;return{type:'vanity',w,d:.47,dbl:c==='auto'?w>=1.2:c==='2',mir:$('vmir').checked,fin:$('vfin').value}}],
+ ['wc',6,()=>{const s=$('wtype').value==='wc';return{type:$('wtype').value,w:s?.4:.38,d:s?.55:.68,shelf:$('i_wcshelf').checked}}],
+ ['rad',7,()=>({type:'rad',w:+$('rw2').value/100,d:.1,elec:$('rtype').value==='elec'})],
+ ['sdb_wash',7,()=>({type:'washer',w:.6,d:.6,top:true})]
+];
+const DEFS_BUA=[
+ ['b_wash',4,()=>{const c=$('b_wcfg').value,tp=$('b_wtop').checked;return c==='side'?{type:'wash_side',w:1.25,d:.6,top:tp}:c==='stack'?{type:'wash_stack',w:.6,d:.6}:{type:'washer',w:.6,d:.6,top:tp}}],
+ ['sink',5,()=>({type:'sink',w:+$('sinkw').value/100,d:.6,fin:$('sinkfin').value})],
+ ['tall',6,()=>({type:'tall',w:.6,d:.6})],
+ ['shelf',6,()=>({type:'shelf',w:+$('shelfw').value/100,d:.32})],
+ ['dryline',6,()=>({type:'dryline',w:+$('dryw').value/100,d:.45})],
+ ['boiler',6,()=>({type:'boiler',w:.6,d:.6})],
+ ['rad',7,()=>({type:'rad',w:+$('rw2').value/100,d:.1,elec:$('rtype').value==='elec'})]
+];
+
+function applyAll(){
+ const list=mode==='sdb'?DEFS_SDB:DEFS_BUA;
+ list.forEach(([slot,st,f])=>{
+  let it=items.find(i=>i.slot===slot);
+  const chk=$('i_'+slot);
+  if(st>maxStep||!chk||!chk.checked){if(it){scene.remove(it.g);items.splice(items.indexOf(it),1)}return}
+  const p=f();
+  if(!it){it={slot,x:0,z:0,rot:0,...p};if(!autoPlace(it)){toast('Pas de place pour : '+NAME[p.type]);return}items.push(it);mk(it);return}
+  const o={...it,...p};contact(o);if(bad(o,it)&&!autoPlace(o,it)){toast('Pas de place avec cette taille');return}Object.assign(it,o);mk(it)
+ });
+ refresh();
+}
+
+/* ---------- Plomberie, Métré & Schéma 2D ---------- */
+const ports=it=>{const d=it.d,z=-d/2+.05,t=it.type,p={};
+ if(t==='vanity'||t==='sink'){p.cold=[-.08,z];p.hot=[.08,z];p.dr=[0,z+.02]}
+ else if(t==='shower'){const m=it.mix*(it.w/2-.22);p.cold=[m-.08,z];p.hot=[m+.08,z];p.dr=[0,0]}
+ else if(t==='wc'){p.cold=[0,z+.05];p.dw=[0,z+.12]}else if(t==='wc2'){p.cold=[.1,z];p.dw=[0,z+.08]}
+ else if(t==='bath'){p.cold=[-it.w/2+.1,-.08];p.hot=[-it.w/2+.1,.08];p.dr=[-it.w/2+.1,0]}
+ else if(t==='washer'||t==='wash_stack'||t==='wash_side'){p.cold=[-.1,z];p.dr=[.08,z];p.elec=[.18,z]}
+ else if(t==='boiler'){p.cold=[-.1,z];p.hot=[.1,z];p.elec=[0,z]}
+ else if(t==='rad'){if(it.elec)p.elec=[0,0];else p.hot=[-it.w/2+.02,0]}
+ const c=Math.cos(it.rot),s=Math.sin(it.rot),o={};for(const k in p)o[k]=[it.x+p[k][0]*c+p[k][1]*s,it.z-p[k][0]*s+p[k][1]*c];return o}
+const LANE={cold:.05,hot:.09,dr:.13,dw:.18},PP=()=>2*(L+W);
+const wallOf=(x,z)=>{const d=[z,L-x,W-z,x];return d.indexOf(Math.min(...d))};
+const sAt=(x,z)=>{const w=wallOf(x,z);return w===0?x:w===1?L+z:w===2?L+W+(L-x):2*L+W+(W-z)};
+const ptAt=(s,n)=>{const p=PP();s=((s%p)+p)%p;return s<L?[s,n]:s<L+W?[L-n,s-L]:s<2*L+W?[L-(s-L-W),W-n]:[n,W-(s-2*L-W)]}
+const cornerPt=(c,n)=>[[n,n],[L-n,n],[L-n,W-n],[n,W-n]][c];
+const doorsS=()=>ops.filter(o=>o.kind==='door').map(o=>({s:[o.pos,L+o.pos,L+W+L-o.pos,2*L+W+W-o.pos][o.wall],h:o.w/2+.02}));
+function crosses(s1,dir,d,ds){const p=PP();for(let t=0;t<=d;t+=.03){const s=((s1+dir*t)%p+p)%p;for(const q of ds){let e=Math.abs(s-q.s);e=Math.min(e,p-e);if(e<q.h)return true}}return false}
+function routeOf(Pt,k){const n=LANE[k],p=PP(),s0=sAt(feed.x,feed.z),s2=sAt(Pt[0],Pt[1]),d1=((s2-s0)%p+p)%p,d2=p-d1,ds=doorsS();
+ const ok1=!crosses(s0,1,d1,ds),ok2=!crosses(s0,-1,d2,ds);let dir=d1<=d2?1:-1,cross=false;
+ if(ok1&&!ok2)dir=1;else if(!ok1&&ok2)dir=-1;else if(!ok1&&!ok2)cross=true;
+ const d=dir===1?d1:d2,pts=[ptAt(s0,n)];
+ const cs=[0,L,L+W,2*L+W].map((c,i)=>({i,t:dir===1?((c-s0)%p+p)%p:((s0-c)%p+p)%p})).filter(c=>c.t>1e-6&&c.t<d-1e-6).sort((a,b)=>a.t-b.t);
+ cs.forEach(c=>pts.push(cornerPt(c.i,n)));const e=ptAt(s2,n);pts.push(e);pts.push(Pt);
+ return{pts,s0,dir,d,sp:Math.abs(Pt[0]-e[0])+Math.abs(Pt[1]-e[1]),cross}}
+function net(){const p=PP(),Mm=Math.round(p*100),R={};
+ ['cold','hot','dr','dw'].forEach(k=>R[k]={m:new Uint8Array(Mm),n:0,sp:0,dirs:new Set(),cross:0});
+ items.forEach(it=>{const P=ports(it);for(const k in R){if(!P[k])continue;const r=routeOf(P[k],k),o=R[k];o.n++;o.sp+=r.sp;if(r.cross)o.cross++;if(r.d>.02)o.dirs.add(r.dir);
+  for(let t=0;t<=r.d;t+=.01)o.m[Math.min(Mm-1,Math.floor((((r.s0+r.dir*t)%p)+p)%p*100))]=1}});
+ const cor=[0,L,L+W,2*L+W].map(c=>Math.round(c*100)%Mm);
+ for(const k in R){const o=R[k];o.len=o.m.reduce((a,b)=>a+b,0)/100+o.sp;const E=Math.max(o.dirs.size,1);
+  o.corners=o.n?cor.filter(c=>o.m[(c+Mm-2)%Mm]&&o.m[(c+2)%Mm]).length:0;o.te=o.n?Math.max(0,o.n-E+(E===2?1:0)):0;o.coude=o.n?o.corners+E+1:0}
+ return R}
+const stops=()=>items.reduce((a,it)=>a+(it.type==='vanity'?it.dbl?4:2:it.type==='shower'||it.type==='bath'||it.type==='sink'||it.type==='boiler'?2:/^wc|wash/.test(it.type)?1:it.type==='rad'&&!it.elec?2:0),0);
+const hooks=()=>Math.max(0,Math.round(+($('npat')||{value:0}).value||0));
+
+function dossier(v){const N=net(),T=CFG.tube,f=x=>(x*1.15).toFixed(1),op=ops.reduce((s,o)=>s+o.w*(o.kind==='door'?2.04:1.2),0);
+ const LB={cold:'Eau froide ('+T+' Ø16)',hot:'Eau chaude ('+T+' Ø16)',dr:'Évacuation PVC Ø40',dw:'Évacuation PVC Ø100 (WC)'};
+ const l=['DOSSIER TECHNIQUE - SIMULATION '+(mode==='sdb'?'SALLE DE BAIN':'BUANDERIE')+' (implantation indicative)','',
+ 'CLIENT : '+v('f_nom')+' '+v('f_prenom'),'Adresse : '+v('f_adr')+' '+v('f_cp')+' '+v('f_ville'),'Téléphone : '+v('f_tel'),'E-mail : '+v('f_mail'),'Projet : '+v('f_proj'),'Message : '+v('f_msg'),'',
+ 'PIÈCE : '+Math.round(L*100)+' x '+Math.round(W*100)+' cm, hauteur '+Math.round(H*100)+' cm, surface '+(L*W).toFixed(1)+' m²','OUVERTURES :',
+ ...ops.map(o=>'- '+(o.kind==='door'?'Porte ('+SWING[o.swing||'pg']+')':'Fenêtre')+' mur '+WN[o.wall]+', centre à '+Math.round(o.pos*100)+' cm, largeur '+Math.round(o.w*100)+' cm'),
+ 'ARRIVÉE DES CONDUITES : mur '+WN[feed.w]+' (x '+Math.round(feed.x*100)+' cm, z '+Math.round(feed.z*100)+' cm)','','ÉQUIPEMENTS :',
+ ...items.map(it=>'- '+NAME[it.type]+' ('+Math.round(it.w*100)+' x '+Math.round(it.d*100)+' cm) contre le mur '+WN[[0,3,2,1][q(it)]]),'',
+ 'RÉSEAUX (+15 % de chute) :',
+ ...['cold','hot','dr','dw'].filter(k=>N[k].n).map(k=>'- '+LB[k]+' : '+f(N[k].len)+' m · '+N[k].n+' piquage(s) · coudes : '+N[k].coude+' · tés : '+N[k].te+(N[k].cross?' · ATTENTION : traverse la porte':'')),
+ 'FOURNITURES :','- Robinets d’arrêt / machine : '+stops()+' u','- Patères : '+hooks()+' u',
+ '- Sol : '+(L*W*1.1).toFixed(1)+' m² (+10 %) · Murs : '+(Math.max(0,2*(L+W)*H-op)*1.1).toFixed(1)+' m² (+10 %)'];
+ return l.join('\n')}
+
+function refresh(){const ul=$('bill'),add=(a,b)=>ul.insertAdjacentHTML('beforeend',`<li><span>${a}</span><b>${b}</b></li>`);ul.innerHTML='';
+ $('surf').textContent='Surface : '+(L*W).toFixed(1)+' m²';
+ add('Projet',mode==='sdb'?'Salle de bain':'Buanderie');
+ add('Surface au sol',(L*W).toFixed(1)+' m²');
+ items.forEach(it=>add(NAME[it.type],Math.round(it.w*100)+' × '+Math.round(it.d*100)+' cm'));
+ if(items.length){add('Robinets d’arrêt',stops()+' u');add('Patères',hooks()+' u')}
+ if(view==='plan')drawPlan()}
+
+function save(cv,name){cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)},'image/png')}
+function dl3d(){const pv=view,w0=gl.clientWidth||1,h0=gl.clientHeight||1;setView('3d');const W2=2400,H2=Math.round(W2*h0/w0);
+ rend.setPixelRatio(1);rend.setSize(W2,H2);persp.aspect=W2/H2;persp.updateProjectionMatrix();rend.render(scene,persp);
+ const c=document.createElement('canvas');c.width=W2;c.height=H2+160;const g=c.getContext('2d');g.drawImage(rend.domElement,0,0);
+ g.fillStyle='#33555F';g.fillRect(0,H2,W2,160);g.fillStyle='#fff';g.font='bold 44px sans-serif';g.fillText('Le Coup de Main · Services à domicile',40,H2+65);g.font='30px sans-serif';g.fillText(CFG.email+'  ·  www.lecoupdemain-services.fr  ·  '+CFG.tel,40,H2+115);
+ rend.setPixelRatio(Math.min(devicePixelRatio,2));resize();save(c,'simulation-3d.png');setView(pv)}
+function dlPlan(){const pv=view;setView('plan');drawPlan(2);save(pc,'schema-technique.png');drawPlan();setView(pv)}
+
+let pm={s:1,ox:0,oy:0};
+function drawPlan(k){const dpr=k||Math.min(devicePixelRatio,2),cw=pc.clientWidth||300,ch=pc.clientHeight||300;pc.width=cw*dpr;pc.height=ch*dpr;const g=pc.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);
+ const s=Math.min((cw-140)/L,(ch-180)/W),ox=(cw-L*s)/2,oy=(ch-W*s)/2-10;pm={s,ox,oy};const X=x=>ox+x*s,Z=z=>oy+z*s,BG='#12263f',FG='#e8f0fb';
+ g.fillStyle=BG;g.fillRect(0,0,cw,ch);g.strokeStyle='rgba(140,180,230,.13)';g.lineWidth=1;
+ for(let x=0;x<=L+1e-6;x+=.1){g.beginPath();g.moveTo(X(x),Z(0));g.lineTo(X(x),Z(W));g.stroke()}for(let z=0;z<=W+1e-6;z+=.1){g.beginPath();g.moveTo(X(0),Z(z));g.lineTo(X(L),Z(z));g.stroke()}
+ g.strokeStyle=FG;g.lineWidth=6;g.strokeRect(X(0),Z(0),L*s,W*s);
+ ops.forEach(o=>{const P=wp(o.wall,o.pos);g.save();g.translate(X(P[0]),Z(P[1]));g.rotate([0,Math.PI/2,Math.PI,-Math.PI/2][o.wall]);const hw=o.w/2*s,ws=o.w*s;g.fillStyle=BG;g.fillRect(-hw,-5,2*hw,10);
+  if(o.kind==='door'){
+   const sw=o.swing||'pg',isL=sw==='pg'||sw==='tg',isIn=sw==='pg'||sw==='pd',hx=isL?-hw:hw,dirY=isIn?1:-1;
+   g.strokeStyle=FG;g.lineWidth=2;g.beginPath();g.moveTo(hx,0);g.lineTo(hx,dirY*ws);g.stroke();
+   g.setLineDash([4,4]);g.lineWidth=1.2;g.beginPath();
+   if(isL&&isIn)g.arc(hx,0,ws,0,Math.PI/2);else if(!isL&&isIn)g.arc(hx,0,ws,Math.PI/2,Math.PI);else if(isL&&!isIn)g.arc(hx,0,ws,-Math.PI/2,0);else g.arc(hx,0,ws,Math.PI,Math.PI*1.5);
+   g.stroke();g.setLineDash([])
+  }else{g.strokeStyle='#8fd0ff';g.lineWidth=1.5;[-3,0,3].forEach(y=>{g.beginPath();g.moveTo(-hw,y);g.lineTo(hw,y);g.stroke()})}g.restore()});
+ g.font='11px sans-serif';g.textAlign='center';
+ items.forEach(it=>{const r=rect(it),isHigh=BOT[it.type]>1;g.fillStyle=isHigh?'rgba(255,216,74,.08)':'rgba(255,255,255,.08)';g.strokeStyle=isHigh?'#ffd84a':'#d2b36a';g.lineWidth=2;if(isHigh)g.setLineDash([4,3]);g.fillRect(X(r.x0),Z(r.z0),(r.x1-r.x0)*s,(r.z1-r.z0)*s);g.strokeRect(X(r.x0),Z(r.z0),(r.x1-r.x0)*s,(r.z1-r.z0)*s);g.setLineDash([]);g.fillStyle=FG;g.fillText(NAME[it.type],X(it.x),Z(it.z)+(isHigh?-6:4))});
+ const line=(pts,col,w,dash)=>{g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.beginPath();pts.forEach((p,i)=>i?g.lineTo(X(p[0]),Z(p[1])):g.moveTo(X(p[0]),Z(p[1])));g.stroke();g.setLineDash([])};
+ const LC={cold:'#4aa8ff',hot:'#ff6b5b',dr:'#b8bec6',dw:'#b8bec6'},LW={cold:2.5,hot:2.5,dr:3,dw:5};
+ items.forEach(it=>{const P=ports(it);for(const k of ['dw','dr','cold','hot']){if(!P[k])continue;const r=routeOf(P[k],k);line(r.pts,r.cross?'#ffaa00':LC[k],LW[k],r.cross?[4,4]:(k==='dr'||k==='dw'?[8,5]:null))}
+  for(const k in P){g.fillStyle=k==='cold'?'#4aa8ff':k==='hot'?'#ff6b5b':k==='elec'?'#ffd84a':'#b8bec6';g.beginPath();g.arc(X(P[k][0]),Z(P[k][1]),k==='elec'?5:3.5,0,7);g.fill()}});
+ g.fillStyle='#d2b36a';g.beginPath();g.arc(X(feed.x),Z(feed.z),8,0,7);g.fill();g.fillStyle=FG;g.font='bold 11px sans-serif';g.fillText('Arrivée d’eau',X(feed.x)+(feed.x>L/2?-50:50),Z(feed.z)+(feed.z>W/2?-12:20));
+ g.font='bold 12px sans-serif';g.fillText('Mur A · '+Math.round(L*100)+' cm',X(L/2),Z(0)-12);g.fillText('Mur C · '+Math.round(L*100)+' cm',X(L/2),Z(W)+20);
+}
+pc.addEventListener('pointerdown',e=>{if(step!==3)return;const r=pc.getBoundingClientRect();setFeed((e.clientX-r.left-pm.ox)/pm.s,(e.clientY-r.top-pm.oy)/pm.s)});
+
+/* ---------- Vues, Caméra, Drag & Double-Tap iPhone ---------- */
+const HINT={plan:'Schéma technique : murs A, B, C, D','3d':'Glissez un meuble pour le déplacer · Double-tap pour pivoter à 90°',top:'Vue de dessus · Glissez un équipement pour le déplacer'};
+function setView(v){view=v;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));gl.style.display=v==='plan'?'none':'block';pc.style.display=v==='plan'?'block':'none';$('hint').textContent=step===3&&v==='plan'?'Cliquez sur le schéma pour placer l’arrivée des conduites':HINT[v];cam=v==='top'?ortho:persp;resize()}
+function resize(){const w=gl.clientWidth||1,h=gl.clientHeight||1;rend.setSize(w,h);const a=w/h;persp.aspect=a;persp.updateProjectionMatrix();const hh=Math.max(W/2+.5,(L/2+.5)/a);ortho.left=-hh*a;ortho.right=hh*a;ortho.top=hh;ortho.bottom=-hh;ortho.updateProjectionMatrix();if(view==='plan')drawPlan()}
+function loop(){requestAnimationFrame(loop);if(view==='plan')return;if(view==='top'){ortho.position.set(L/2,12,W/2);ortho.up.set(0,0,-1);ortho.lookAt(L/2,0,W/2)}else{const t=new THREE.Vector3(L/2,.8,W/2);persp.position.set(t.x+sph.r*Math.sin(sph.p)*Math.sin(sph.t),t.y+sph.r*Math.cos(sph.p),t.z+sph.r*Math.sin(sph.p)*Math.cos(sph.t));persp.up.set(0,1,0);persp.lookAt(t)}rend.render(scene,cam)}
+const ray=new THREE.Raycaster(),fp=new THREE.Plane(new THREE.Vector3(0,1,0),0),v2=new THREE.Vector2();
+const ndc=e=>{const r=gl.getBoundingClientRect();v2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(v2,cam)},fpt=()=>{const p=new THREE.Vector3();return ray.ray.intersectPlane(fp,p)?p:null};
+
+function rotateAtEvent(e){
+ if(step<4)return;ndc(e);const hit=ray.intersectObjects(items.map(i=>i.g),true);
+ if(hit.length){let o=hit[0].object;while(o.parent!==scene)o=o.parent;const it=items.find(i=>i.g===o);
+  if(it){const oldR=it.rot,oldX=it.x,oldZ=it.z;it.rot=(it.rot+Math.PI/2)%(Math.PI*2);contact(it);
+   if(bad(it,it)){it.rot=oldR;it.x=oldX;it.z=oldZ;toast('Rotation impossible à cet endroit')}
+   else{mk(it);refresh();toast(NAME[it.type]+' pivoté à 90°')}}}
+}
+gl.addEventListener('dblclick',rotateAtEvent);
+let lastTap=0;
+gl.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTap<320&&e.changedTouches.length===1){e.preventDefault();rotateAtEvent(e.changedTouches[0])}lastTap=now},{passive:false});
+
+gl.addEventListener('pointerdown',e=>{ndc(e);const hit=step>=4?ray.intersectObjects(items.map(i=>i.g),true):[];
+ if(hit.length){let o=hit[0].object;while(o.parent!==scene)o=o.parent;const it=items.find(i=>i.g===o),p=fpt();drag={it,dx:p?it.x-p.x:0,dz:p?it.z-p.z:0}}else if(view==='3d')orb={x:e.clientX,y:e.clientY};gl.setPointerCapture(e.pointerId)});
+gl.addEventListener('pointermove',e=>{if(drag){ndc(e);const p=fpt();if(p){const c={...drag.it,x:p.x+drag.dx,z:p.z+drag.dz};snap(c);const r=bad(c,drag.it);if(!r){Object.assign(drag.it,{x:c.x,z:c.z,rot:c.rot});drag.it.g.position.set(c.x,0,c.z);drag.it.g.rotation.y=c.rot;refresh()}else toast(MSG[r])}}
+ else if(orb){sph.t-=(e.clientX-orb.x)*.006;sph.p=Math.max(.25,Math.min(1.5,sph.p-(e.clientY-orb.y)*.005));orb={x:e.clientX,y:e.clientY}}});
+const end=()=>{drag=null;orb=null};gl.addEventListener('pointerup',end);gl.addEventListener('pointercancel',end);
+gl.addEventListener('wheel',e=>{e.preventDefault();sph.r=Math.max(2,Math.min(14,sph.r*(1+e.deltaY*.001)))},{passive:false});addEventListener('resize',resize);
+
+/* ---------- Plein écran 100% compatible iPhone / iOS ---------- */
+$('fsBtn').onclick=()=>{
+ const isFs=document.body.classList.toggle('fs');
+ $('fsBtn').textContent=isFs?'✕ Quitter':'⛶ Plein écran';
+ if(!isFs&&document.fullscreenElement){try{document.exitFullscreen()}catch(_){}}
+ else if(isFs&&$('main').requestFullscreen){try{$('main').requestFullscreen().catch(()=>{})}catch(_){}}
+ setTimeout(resize,80);
+};
+$('resetBtn').onclick=()=>location.reload();
+
+/* ---------- Navigation & Envoi ---------- */
+function go(n){if(n>step&&step===2&&!ops.some(o=>o.kind==='door')){toast('Merci d’ajouter la porte avant de continuer');return}
+ step=n;maxStep=Math.max(maxStep,n);document.querySelectorAll('.stp').forEach(p=>p.classList.toggle('on',+p.dataset.s===n));$('pbar').style.width=n/9*100+'%';$('stTxt').textContent='Étape '+n+' sur 9 · '+getSTL()[n-1];
+ $('bprev').disabled=n===1;$('bnext').textContent=n<9?'Suivant':'Envoyer ma demande';$('sc').scrollTop=0;setView(n<=3?'plan':'3d');applyAll()}
+function rebuild(){L=Math.max(1,Math.min(8,(+$('rl').value||300)/100));W=Math.max(1,Math.min(8,(+$('rw').value||240)/100));H=Math.max(2,Math.min(3.2,(+$('rh').value||250)/100));
+ buildRoom();ops.forEach(o=>{const len=o.wall%2?W:L;o.pos=Math.min(o.pos,len-o.w/2-.02);mkOp(o)});setFeed(feed.x,feed.z);updHeat();renderOps();resize()}
+async function sendProj(){const v=i=>($(i).value||'').trim();
+ if(!v('f_nom')||!v('f_prenom')||!v('f_tel')||!v('f_mail')){toast('Merci de renseigner nom, prénom, téléphone et e-mail');return}
+ if(!$('f_ok').checked){toast('Merci de cocher la case de confirmation');return}
+ const txt=dossier(v),sub='Simulation '+(mode==='sdb'?'Salle de bain':'Buanderie')+' - '+v('f_nom')+' '+v('f_prenom');
+ try{const r=await fetch(CFG.form,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({_subject:sub,nom:v('f_nom')+' '+v('f_prenom'),email:v('f_mail'),telephone:v('f_tel'),message:txt})});
+  if(!r.ok)throw new Error('http');$('done').style.display='block';$('bnext').textContent='Demande envoyée'}
+ catch(e){location.href='mailto:'+CFG.email+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(txt)}}
+
+$('bwa').onclick=()=>{const v=i=>($(i).value||'').trim();window.open('https://wa.me/33646664222?text='+encodeURIComponent('Bonjour Julien, voici mon projet :\n\n'+dossier(v)),'_blank')};
+$('bnext').onclick=()=>step<9?go(step+1):sendProj();$('bprev').onclick=()=>go(step-1);
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setView(b.dataset.v));document.querySelectorAll('.eq').forEach(e=>e.onchange=applyAll);
+['rl','rw','rh'].forEach(i=>$(i).onchange=rebuild);$('tf').onchange=$('tw').onchange=buildRoom;['hsel','hwall','hpos'].forEach(i=>$(i).onchange=updHeat);
+$('dl3').onclick=dl3d;$('dlp').onclick=dlPlan;$('bphoto').onclick=()=>window.open('https://wa.me/33646664222?text='+encodeURIComponent('Bonjour Julien, voici des photos de ma pièce actuelle.'),'_blank');
+$('addDoor').onclick=()=>addOp('door');$('addWin').onclick=()=>addOp('window');
+initScene();setFeed(.1,.1);go(1);
+</script>
+</body>
 </html>
